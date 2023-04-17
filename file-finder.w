@@ -51,8 +51,9 @@ CREATE WIDGET-POOL.
 &Scoped-define FRAME-NAME F-Main
 
 /* Standard List Definitions                                            */
-&Scoped-Define ENABLED-OBJECTS i-filen-lw i-filen-pf 
-&Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf 
+&Scoped-Define ENABLED-OBJECTS i-filen-lw i-filen-pf l-filen btn-search ~
+t-filen 
+&Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-filen 
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
@@ -68,24 +69,43 @@ CREATE WIDGET-POOL.
 DEFINE VAR C-Win AS WIDGET-HANDLE NO-UNDO.
 
 /* Definitions of the field level widgets                               */
+DEFINE BUTTON btn-search 
+     LABEL "Search" 
+     SIZE 15 BY 1.12.
+
+DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
+     LABEL "List of File" 
+     VIEW-AS COMBO-BOX INNER-LINES 10
+     DROP-DOWN-LIST
+     SIZE 27 BY .92 NO-UNDO.
+
 DEFINE VARIABLE i-filen-lw AS CHARACTER FORMAT "X(256)":U 
+     LABEL "Folder path" 
      VIEW-AS FILL-IN 
-     SIZE 5 BY 1 NO-UNDO.
+     SIZE 3 BY 1 NO-UNDO.
 
 DEFINE VARIABLE i-filen-pf AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS FILL-IN 
-     SIZE 14 BY 1 NO-UNDO.
+     SIZE 50 BY 1 NO-UNDO.
+
+DEFINE VARIABLE t-filen AS CHARACTER FORMAT "X(256)":U 
+     LABEL "Folder path" 
+      VIEW-AS TEXT 
+     SIZE 54 BY .62 NO-UNDO.
 
 
 /* ************************  Frame Definitions  *********************** */
 
 DEFINE FRAME F-Main
-     i-filen-lw AT ROW 2.62 COL 5 COLON-ALIGNED NO-LABEL WIDGET-ID 2
-     i-filen-pf AT ROW 2.62 COL 14 COLON-ALIGNED NO-LABEL WIDGET-ID 4
+     i-filen-lw AT ROW 2.62 COL 9.57 COLON-ALIGNED WIDGET-ID 2
+     i-filen-pf AT ROW 2.62 COL 13.72 COLON-ALIGNED NO-LABEL WIDGET-ID 4
+     l-filen AT ROW 4.23 COL 2.71 WIDGET-ID 12
+     btn-search AT ROW 4.23 COL 63 WIDGET-ID 10
+     t-filen AT ROW 2.81 COL 9.57 COLON-ALIGNED WIDGET-ID 8
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COL 1 ROW 1
-         SIZE 80 BY 16 WIDGET-ID 100.
+         AT COL 2.43 ROW 1.31
+         SIZE 77 BY 15.35 WIDGET-ID 100.
 
 
 /* *********************** Procedure Settings ************************ */
@@ -104,13 +124,13 @@ DEFINE FRAME F-Main
 IF SESSION:DISPLAY-TYPE = "GUI":U THEN
   CREATE WINDOW C-Win ASSIGN
          HIDDEN             = YES
-         TITLE              = "<insert window title>"
+         TITLE              = "File Finder"
          HEIGHT             = 16
          WIDTH              = 80
-         MAX-HEIGHT         = 16
-         MAX-WIDTH          = 80
-         VIRTUAL-HEIGHT     = 16
-         VIRTUAL-WIDTH      = 80
+         MAX-HEIGHT         = 39.12
+         MAX-WIDTH          = 274.29
+         VIRTUAL-HEIGHT     = 39.12
+         VIRTUAL-WIDTH      = 274.29
          RESIZE             = yes
          SCROLL-BARS        = no
          STATUS-AREA        = no
@@ -133,6 +153,16 @@ ELSE {&WINDOW-NAME} = CURRENT-WINDOW.
   VISIBLE,,RUN-PERSISTENT                                               */
 /* SETTINGS FOR FRAME F-Main
    FRAME-NAME                                                           */
+/* SETTINGS FOR COMBO-BOX l-filen IN FRAME F-Main
+   ALIGN-L                                                              */
+ASSIGN 
+       l-filen:HIDDEN IN FRAME F-Main           = TRUE.
+
+/* SETTINGS FOR FILL-IN t-filen IN FRAME F-Main
+   NO-DISPLAY                                                           */
+ASSIGN 
+       t-filen:HIDDEN IN FRAME F-Main           = TRUE.
+
 IF SESSION:DISPLAY-TYPE = "GUI":U AND VALID-HANDLE(C-Win)
 THEN C-Win:HIDDEN = no.
 
@@ -147,7 +177,7 @@ THEN C-Win:HIDDEN = no.
 
 &Scoped-define SELF-NAME C-Win
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL C-Win C-Win
-ON END-ERROR OF C-Win /* <insert window title> */
+ON END-ERROR OF C-Win /* File Finder */
 OR ENDKEY OF {&WINDOW-NAME} ANYWHERE DO:
   /* This case occurs when the user presses the "Esc" key.
      In a persistently run window, just ignore this.  If we did not, the
@@ -160,11 +190,22 @@ END.
 
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL C-Win C-Win
-ON WINDOW-CLOSE OF C-Win /* <insert window title> */
+ON WINDOW-CLOSE OF C-Win /* File Finder */
 DO:
   /* This event will close the window and terminate the procedure.  */
   APPLY "CLOSE":U TO THIS-PROCEDURE.
   RETURN NO-APPLY.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME btn-search
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search C-Win
+ON CHOOSE OF btn-search IN FRAME F-Main /* Search */
+DO:
+  RUN get-filelist.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -185,6 +226,17 @@ END.
 &Scoped-define SELF-NAME i-filen-pf
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-pf C-Win
 ON MOUSE-SELECT-DBLCLICK OF i-filen-pf IN FRAME F-Main /* Fill 2 */
+DO:
+  RUN get-dirname.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME t-filen
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL t-filen C-Win
+ON MOUSE-SELECT-DBLCLICK OF t-filen IN FRAME F-Main /* Folder path */
 DO:
   RUN get-dirname.
 END.
@@ -218,6 +270,12 @@ MAIN-BLOCK:
 DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
    ON END-KEY UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK:
   RUN enable_UI.
+  
+  t-filen:HIDDEN = TRUE.
+  l-filen:HIDDEN = TRUE.
+  
+  
+  
   IF NOT THIS-PROCEDURE:PERSISTENT THEN
     WAIT-FOR CLOSE OF THIS-PROCEDURE.
 END.
@@ -258,9 +316,9 @@ PROCEDURE enable_UI :
                These statements here are based on the "Other 
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
-  DISPLAY i-filen-lw i-filen-pf 
+  DISPLAY i-filen-lw i-filen-pf l-filen 
       WITH FRAME F-Main IN WINDOW C-Win.
-  ENABLE i-filen-lw i-filen-pf 
+  ENABLE i-filen-lw i-filen-pf l-filen btn-search t-filen 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
   VIEW C-Win.
@@ -287,22 +345,67 @@ DO WITH FRAME {&FRAME-NAME}:
       TITLE "Select File"
       RETURN-TO-START-DIR
       UPDATE found-file.
-   if found-file then do:
-      assign firstdpplpkt  =   index (cFile, ":")
-             lastbackslash = r-index (cFile, "\").
-      if firstdpplpkt <> 0 then
-         i-filen-lw:screen-value = substring (cFile, 1, firstdpplpkt - 1).
-      else
-         i-filen-lw:screen-value = "".
-      if lastbackslash <> 0 THEN DO:
+   IF found-file THEN DO:
+      ASSIGN 
+         t-filen:SCREEN-VALUE = cFile
+         firstdpplpkt  =   INDEX (cFile, ":")
+         lastbackslash = R-INDEX (cFile, "\").
+      IF firstdpplpkt <> 0 THEN 
+         i-filen-lw:SCREEN-VALUE = SUBSTRING(cFile, 1, firstdpplpkt - 1).
+      ELSE   
+         i-filen-lw:SCREEN-VALUE = "".
+      IF lastbackslash <> 0 THEN DO:
          ASSIGN
-            i-filen-pf:screen-value = substring (cFile, firstdpplpkt + 1, lastbackslash - firstdpplpkt).
+            i-filen-pf:SCREEN-VALUE = SUBSTRING(cFile, firstdpplpkt + 1).
       END.
-      else
-         assign i-filen-pf:screen-value = "".
-      end.   
+      ELSE
+         ASSIGN i-filen-pf:SCREEN-VALUE = "".  
+      i-filen-lw:HIDDEN = TRUE.
+      i-filen-pf:HIDDEN = TRUE.
+      t-filen:HIDDEN = FALSE.
+   END.   
 
+   
+END.
+END PROCEDURE.
 
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE get-filelist C-Win 
+PROCEDURE get-filelist :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+DO WITH FRAME {&FRAME-NAME}: 
+   DEFINE VARIABLE cDir AS CHARACTER NO-UNDO.
+   DEFINE VARIABLE cFileStream AS CHARACTER NO-UNDO.
+   DEF VAR hf-first AS LOG NO-UNDO INIT NO.
+   DEF VAR hf-count AS INT NO-UNDO.
+
+   l-filen:LIST-ITEMS = "".
+   ASSIGN 
+      hf-count = 0
+      cDir = t-filen:SCREEN-VALUE.
+   INPUT FROM OS-DIR (cDir).
+   REPEAT:
+      IMPORT cFileStream.
+      FILE-INFO:FILE-NAME = cDir + cFileStream. 
+      IF cFileStream <> "." AND cFileStream <> ".." THEN DO: 
+         l-filen:ADD-LAST(cFileStream).
+         IF NOT hf-first THEN DO:   
+            l-filen:SCREEN-VALUE = cFileStream.
+            ASSIGN hf-first = YES.
+         END.
+      END.
+   END.
+   IF hf-count > 5  AND  hf-count <= 10 THEN
+      l-filen:INNER-LINES = hf-count.
+   ELSE IF hf-count > 10 THEN
+      l-filen:INNER-LINES = 10.
+   l-filen:HIDDEN = FALSE.   
    
 END.
 END PROCEDURE.
@@ -362,21 +465,6 @@ PROCEDURE get-filename :
 /*                 i-filen:screen-value = file-name.                                                             */
 /*    end.                                                                                                       */
 /* end.                                                                                                          */
-END PROCEDURE.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE get-files-list C-Win 
-PROCEDURE get-files-list :
-/*------------------------------------------------------------------------------
-  Purpose:     
-  Parameters:  <none>
-  Notes:       
-------------------------------------------------------------------------------*/
-DO WITH FRAME {&FRAME-NAME}:
-
-END.
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
