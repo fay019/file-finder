@@ -51,9 +51,11 @@ CREATE WIDGET-POOL.
 &Scoped-define FRAME-NAME F-Main
 
 /* Standard List Definitions                                            */
-&Scoped-Define ENABLED-OBJECTS i-filen-lw i-filen-pf l-filen btn-search ~
-t-filen 
-&Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-filen 
+&Scoped-Define ENABLED-OBJECTS i-filen-lw i-filen-pf btn-search l-folder ~
+i-folder i-filter l-filen f-p f-w f-r f-csv f-txt f-all t-info t-filen ~
+l-label-1 l-label-2 
+&Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
+i-filter l-filen f-p f-w f-r f-csv f-txt f-all t-info l-label-1 l-label-2 
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
@@ -74,7 +76,11 @@ DEFINE BUTTON btn-search
      SIZE 15 BY 1.12.
 
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
-     LABEL "List of File" 
+     VIEW-AS COMBO-BOX INNER-LINES 10
+     DROP-DOWN-LIST
+     SIZE 27 BY .92 NO-UNDO.
+
+DEFINE VARIABLE l-folder AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
      DROP-DOWN-LIST
      SIZE 27 BY .92 NO-UNDO.
@@ -88,20 +94,84 @@ DEFINE VARIABLE i-filen-pf AS CHARACTER FORMAT "X(256)":U
      VIEW-AS FILL-IN 
      SIZE 50 BY 1 NO-UNDO.
 
+DEFINE VARIABLE l-label-1 AS CHARACTER FORMAT "X(256)":U INITIAL "List of Folder:" 
+      VIEW-AS TEXT 
+     SIZE 12 BY .62 NO-UNDO.
+
+DEFINE VARIABLE l-label-2 AS CHARACTER FORMAT "X(256)":U INITIAL "List of File:" 
+      VIEW-AS TEXT 
+     SIZE 12 BY .62 NO-UNDO.
+
 DEFINE VARIABLE t-filen AS CHARACTER FORMAT "X(256)":U 
      LABEL "Folder path" 
       VIEW-AS TEXT 
      SIZE 54 BY .62 NO-UNDO.
 
+DEFINE VARIABLE t-info AS CHARACTER FORMAT "X(256)":U 
+      VIEW-AS TEXT 
+     SIZE 47 BY 1 NO-UNDO.
+
+DEFINE VARIABLE f-all AS LOGICAL INITIAL yes 
+     LABEL "all other" 
+     VIEW-AS TOGGLE-BOX
+     SIZE 11.29 BY .69 NO-UNDO.
+
+DEFINE VARIABLE f-csv AS LOGICAL INITIAL yes 
+     LABEL ".csv" 
+     VIEW-AS TOGGLE-BOX
+     SIZE 11.29 BY .69 NO-UNDO.
+
+DEFINE VARIABLE f-p AS LOGICAL INITIAL yes 
+     LABEL ".p" 
+     VIEW-AS TOGGLE-BOX
+     SIZE 11.29 BY .69 NO-UNDO.
+
+DEFINE VARIABLE f-r AS LOGICAL INITIAL yes 
+     LABEL ".r" 
+     VIEW-AS TOGGLE-BOX
+     SIZE 11.29 BY .69 NO-UNDO.
+
+DEFINE VARIABLE f-txt AS LOGICAL INITIAL yes 
+     LABEL ".txt" 
+     VIEW-AS TOGGLE-BOX
+     SIZE 11.29 BY .69 NO-UNDO.
+
+DEFINE VARIABLE f-w AS LOGICAL INITIAL yes 
+     LABEL ".w" 
+     VIEW-AS TOGGLE-BOX
+     SIZE 11.29 BY .69 NO-UNDO.
+
+DEFINE VARIABLE i-filter AS LOGICAL INITIAL no 
+     LABEL "Filter" 
+     VIEW-AS TOGGLE-BOX
+     SIZE 11.29 BY .77 NO-UNDO.
+
+DEFINE VARIABLE i-folder AS LOGICAL INITIAL yes 
+     LABEL "Folder" 
+     VIEW-AS TOGGLE-BOX
+     SIZE 11.29 BY .77 NO-UNDO.
+
 
 /* ************************  Frame Definitions  *********************** */
 
 DEFINE FRAME F-Main
-     i-filen-lw AT ROW 2.62 COL 9.57 COLON-ALIGNED WIDGET-ID 2
-     i-filen-pf AT ROW 2.62 COL 13.72 COLON-ALIGNED NO-LABEL WIDGET-ID 4
-     l-filen AT ROW 4.23 COL 2.71 WIDGET-ID 12
-     btn-search AT ROW 4.23 COL 63 WIDGET-ID 10
-     t-filen AT ROW 2.81 COL 9.57 COLON-ALIGNED WIDGET-ID 8
+     i-filen-lw AT ROW 2.62 COL 10 COLON-ALIGNED WIDGET-ID 2
+     i-filen-pf AT ROW 2.62 COL 14 COLON-ALIGNED NO-LABEL WIDGET-ID 4
+     btn-search AT ROW 4.15 COL 62 WIDGET-ID 10
+     l-folder AT ROW 4.19 COL 13.57 NO-LABEL WIDGET-ID 12
+     i-folder AT ROW 4.23 COL 47 WIDGET-ID 32
+     i-filter AT ROW 5.31 COL 47 WIDGET-ID 16
+     l-filen AT ROW 5.69 COL 13.57 NO-LABEL WIDGET-ID 18
+     f-p AT ROW 8.69 COL 4 WIDGET-ID 20
+     f-w AT ROW 9.5 COL 4 WIDGET-ID 22
+     f-r AT ROW 10.19 COL 4 WIDGET-ID 24
+     f-csv AT ROW 11 COL 4 WIDGET-ID 26
+     f-txt AT ROW 11.81 COL 4 WIDGET-ID 28
+     f-all AT ROW 12.62 COL 4 WIDGET-ID 30
+     t-info AT ROW 1.27 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
+     t-filen AT ROW 2.81 COL 10 COLON-ALIGNED WIDGET-ID 8
+     l-label-1 AT ROW 4.38 COL 1 NO-LABEL WIDGET-ID 34
+     l-label-2 AT ROW 5.85 COL 1 NO-LABEL WIDGET-ID 36
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COL 2.43 ROW 1.31
@@ -153,15 +223,53 @@ ELSE {&WINDOW-NAME} = CURRENT-WINDOW.
   VISIBLE,,RUN-PERSISTENT                                               */
 /* SETTINGS FOR FRAME F-Main
    FRAME-NAME                                                           */
+ASSIGN 
+       f-all:HIDDEN IN FRAME F-Main           = TRUE.
+
+ASSIGN 
+       f-csv:HIDDEN IN FRAME F-Main           = TRUE.
+
+ASSIGN 
+       f-p:HIDDEN IN FRAME F-Main           = TRUE.
+
+ASSIGN 
+       f-r:HIDDEN IN FRAME F-Main           = TRUE.
+
+ASSIGN 
+       f-txt:HIDDEN IN FRAME F-Main           = TRUE.
+
+ASSIGN 
+       f-w:HIDDEN IN FRAME F-Main           = TRUE.
+
 /* SETTINGS FOR COMBO-BOX l-filen IN FRAME F-Main
    ALIGN-L                                                              */
 ASSIGN 
        l-filen:HIDDEN IN FRAME F-Main           = TRUE.
 
+/* SETTINGS FOR COMBO-BOX l-folder IN FRAME F-Main
+   ALIGN-L                                                              */
+ASSIGN 
+       l-folder:HIDDEN IN FRAME F-Main           = TRUE.
+
+/* SETTINGS FOR FILL-IN l-label-1 IN FRAME F-Main
+   ALIGN-L                                                              */
+ASSIGN 
+       l-label-1:READ-ONLY IN FRAME F-Main        = TRUE.
+
+/* SETTINGS FOR FILL-IN l-label-2 IN FRAME F-Main
+   ALIGN-L                                                              */
+ASSIGN 
+       l-label-2:READ-ONLY IN FRAME F-Main        = TRUE.
+
 /* SETTINGS FOR FILL-IN t-filen IN FRAME F-Main
    NO-DISPLAY                                                           */
 ASSIGN 
-       t-filen:HIDDEN IN FRAME F-Main           = TRUE.
+       t-filen:HIDDEN IN FRAME F-Main           = TRUE
+       t-filen:READ-ONLY IN FRAME F-Main        = TRUE.
+
+ASSIGN 
+       t-info:HIDDEN IN FRAME F-Main           = TRUE
+       t-info:READ-ONLY IN FRAME F-Main        = TRUE.
 
 IF SESSION:DISPLAY-TYPE = "GUI":U AND VALID-HANDLE(C-Win)
 THEN C-Win:HIDDEN = no.
@@ -205,7 +313,12 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search C-Win
 ON CHOOSE OF btn-search IN FRAME F-Main /* Search */
 DO:
-  RUN get-filelist.
+   IF t-filen:SCREEN-VALUE <> "" THEN
+      RUN get-filelist.
+   ELSE DO:
+      t-info:FGCOLOR = 12.
+      t-info:SCREEN-VALUE = "Select folder first". 
+   END.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -225,7 +338,7 @@ END.
 
 &Scoped-define SELF-NAME i-filen-pf
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-pf C-Win
-ON MOUSE-SELECT-DBLCLICK OF i-filen-pf IN FRAME F-Main /* Fill 2 */
+ON MOUSE-SELECT-DBLCLICK OF i-filen-pf IN FRAME F-Main
 DO:
   RUN get-dirname.
 END.
@@ -234,11 +347,68 @@ END.
 &ANALYZE-RESUME
 
 
+&Scoped-define SELF-NAME i-filter
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filter C-Win
+ON VALUE-CHANGED OF i-filter IN FRAME F-Main /* Filter */
+DO:
+   IF SELF:SCREEN-VALUE = "yes" THEN DO:
+      f-p:HIDDEN = FALSE.
+      f-w:HIDDEN = FALSE.
+      f-r:HIDDEN = FALSE.
+      f-csv:HIDDEN = FALSE.
+      f-txt:HIDDEN = FALSE.
+      f-all:HIDDEN = FALSE.
+   END.
+   ELSE DO:
+      f-p:HIDDEN = TRUE.
+      f-w:HIDDEN = TRUE.
+      f-r:HIDDEN = TRUE.
+      f-csv:HIDDEN = TRUE.
+      f-txt:HIDDEN = TRUE.
+      f-all:HIDDEN = TRUE.
+   END.
+  
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME i-folder
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-folder C-Win
+ON VALUE-CHANGED OF i-folder IN FRAME F-Main /* Folder */
+DO:
+   IF SELF:SCREEN-VALUE = "NO" THEN DO:
+      ASSIGN
+         l-filen:ROW = 4.19.
+         l-label-1:SCREEN-VALUE = "List of File:".
+      IF l-filen:LIST-ITEMS <> ? THEN
+         ASSIGN 
+            l-label-2:HIDDEN = YES.
+   END.
+   ELSE DO:
+      ASSIGN
+         l-filen:ROW = 5.69. 
+      IF l-filen:LIST-ITEMS <> ? THEN
+         ASSIGN 
+            l-label-1:SCREEN-VALUE = "List of Folder:" 
+            l-label-2:HIDDEN = NO.      
+   END.
+   IF l-filen:LIST-ITEMS <> "" AND l-filen:LIST-ITEMS <> ? THEN
+      RUN get-filelist.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define SELF-NAME t-filen
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL t-filen C-Win
-ON MOUSE-SELECT-DBLCLICK OF t-filen IN FRAME F-Main /* Folder path */
+ON MOUSE-SELECT-CLICK OF t-filen IN FRAME F-Main /* Folder path */
 DO:
-  RUN get-dirname.
+  SELF:HIDDEN = TRUE.
+  i-filen-lw:HIDDEN = FALSE.
+  i-filen-pf:HIDDEN = FALSE.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -269,15 +439,24 @@ PAUSE 0 BEFORE-HIDE.
 MAIN-BLOCK:
 DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
    ON END-KEY UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK:
-  RUN enable_UI.
-  
-  t-filen:HIDDEN = TRUE.
-  l-filen:HIDDEN = TRUE.
-  
-  
-  
-  IF NOT THIS-PROCEDURE:PERSISTENT THEN
-    WAIT-FOR CLOSE OF THIS-PROCEDURE.
+      RUN enable_UI.
+     
+      t-filen:HIDDEN = TRUE.
+      l-filen:HIDDEN = TRUE.
+      l-folder:HIDDEN = TRUE.
+      l-label-1:HIDDEN = TRUE.
+      l-label-2:HIDDEN = TRUE.
+      f-p:HIDDEN = TRUE.
+      f-w:HIDDEN = TRUE.
+      f-r:HIDDEN = TRUE.
+      f-csv:HIDDEN = TRUE.
+      f-txt:HIDDEN = TRUE.
+      f-all:HIDDEN = TRUE.
+     
+     
+     
+      IF NOT THIS-PROCEDURE:PERSISTENT THEN
+         WAIT-FOR CLOSE OF THIS-PROCEDURE.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -316,9 +495,11 @@ PROCEDURE enable_UI :
                These statements here are based on the "Other 
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
-  DISPLAY i-filen-lw i-filen-pf l-filen 
+  DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-p f-w f-r 
+          f-csv f-txt f-all t-info l-label-1 l-label-2 
       WITH FRAME F-Main IN WINDOW C-Win.
-  ENABLE i-filen-lw i-filen-pf l-filen btn-search t-filen 
+  ENABLE i-filen-lw i-filen-pf btn-search l-folder i-folder i-filter l-filen 
+         f-p f-w f-r f-csv f-txt f-all t-info t-filen l-label-1 l-label-2 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
   VIEW C-Win.
@@ -380,32 +561,49 @@ PROCEDURE get-filelist :
   Notes:       
 ------------------------------------------------------------------------------*/
 DO WITH FRAME {&FRAME-NAME}: 
-   DEFINE VARIABLE cDir AS CHARACTER NO-UNDO.
-   DEFINE VARIABLE cFileStream AS CHARACTER NO-UNDO.
-   DEF VAR hf-first AS LOG NO-UNDO INIT NO.
-   DEF VAR hf-count AS INT NO-UNDO.
-
+   DEF VAR cDir AS CHARACTER NO-UNDO.
+   DEF VAR cFileStream AS CHARACTER NO-UNDO.
+   DEF VAR hf-first-file AS LOG NO-UNDO INIT NO.
+   DEF VAR hf-first-folder AS LOG NO-UNDO INIT NO.
+   DEF VAR hf-count AS INT NO-UNDO. 
+   DEF VAR hf-type AS CHARACTER NO-UNDO.
+   DEF VAR hf-path AS CHARACTER NO-UNDO.
+   
    l-filen:LIST-ITEMS = "".
+   l-folder:LIST-ITEMS = "".
    ASSIGN 
       hf-count = 0
-      cDir = t-filen:SCREEN-VALUE.
+      cDir = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE.        
    INPUT FROM OS-DIR (cDir).
    REPEAT:
       IMPORT cFileStream.
-      FILE-INFO:FILE-NAME = cDir + cFileStream. 
-      IF cFileStream <> "." AND cFileStream <> ".." THEN DO: 
-         l-filen:ADD-LAST(cFileStream).
-         IF NOT hf-first THEN DO:   
-            l-filen:SCREEN-VALUE = cFileStream.
-            ASSIGN hf-first = YES.
+      ASSIGN 
+         hf-path = cDir + "~\" + cFileStream .       
+      FILE-INFO:FILE-NAME = hf-path.
+      ASSIGN 
+         hf-type = SUBSTRING(FILE-INFO:FILE-TYPE, 1,1 ).     
+      IF cFileStream <> "." AND cFileStream <> ".." THEN DO:
+         IF hf-type = "F" THEN DO:
+            l-filen:ADD-LAST(cFileStream).
+            IF NOT hf-first-file THEN DO:   
+               l-filen:SCREEN-VALUE = cFileStream.
+               ASSIGN hf-first-file = YES.
+               l-filen:HIDDEN = FALSE.
+               l-label-1:HIDDEN = FALSE.
+            END.
+         END.
+         ELSE IF hf-type = "D" AND i-folder:SCREEN-VALUE = "YES" THEN DO:
+            l-folder:ADD-LAST(cFileStream).
+            IF NOT hf-first-folder THEN DO:   
+               l-folder:SCREEN-VALUE = cFileStream.
+               ASSIGN hf-first-folder = YES.
+               l-folder:HIDDEN = FALSE.
+               l-label-1:HIDDEN = FALSE.
+               l-label-2:HIDDEN = FALSE.
+            END.  
          END.
       END.
    END.
-   IF hf-count > 5  AND  hf-count <= 10 THEN
-      l-filen:INNER-LINES = hf-count.
-   ELSE IF hf-count > 10 THEN
-      l-filen:INNER-LINES = 10.
-   l-filen:HIDDEN = FALSE.   
    
 END.
 END PROCEDURE.
