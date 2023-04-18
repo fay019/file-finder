@@ -36,6 +36,8 @@ CREATE WIDGET-POOL.
 
 /* Local Variable Definitions ---                                       */
 
+DEF VAR hf-new-path AS CHAR NO-UNDO INIT "".
+
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
@@ -51,11 +53,12 @@ CREATE WIDGET-POOL.
 &Scoped-define FRAME-NAME F-Main
 
 /* Standard List Definitions                                            */
-&Scoped-Define ENABLED-OBJECTS i-filen-lw i-filen-pf btn-search l-folder ~
-i-folder i-filter l-filen f-p f-w f-r f-csv f-txt f-all t-info t-filen ~
-l-label-1 l-label-2 
+&Scoped-Define ENABLED-OBJECTS i-filen-lw i-filen-pf l-folder ~
+btn-search-new btn-back i-folder i-filter l-filen btn-search f-p f-w f-r ~
+f-csv f-txt f-all t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 
 &Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
-i-filter l-filen f-p f-w f-r f-csv f-txt f-all t-info l-label-1 l-label-2 
+i-filter l-filen f-p f-w f-r f-csv f-txt f-all t-info l-error-1 l-label-1 ~
+l-label-2 l-error-2 
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
@@ -71,9 +74,17 @@ i-filter l-filen f-p f-w f-r f-csv f-txt f-all t-info l-label-1 l-label-2
 DEFINE VAR C-Win AS WIDGET-HANDLE NO-UNDO.
 
 /* Definitions of the field level widgets                               */
+DEFINE BUTTON btn-back 
+     LABEL "Back" 
+     SIZE 9 BY .69.
+
 DEFINE BUTTON btn-search 
      LABEL "Search" 
      SIZE 15 BY 1.12.
+
+DEFINE BUTTON btn-search-new 
+     LABEL "Search" 
+     SIZE 9 BY .69.
 
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
@@ -93,6 +104,14 @@ DEFINE VARIABLE i-filen-lw AS CHARACTER FORMAT "X(256)":U
 DEFINE VARIABLE i-filen-pf AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS FILL-IN 
      SIZE 50 BY 1 NO-UNDO.
+
+DEFINE VARIABLE l-error-1 AS CHARACTER FORMAT "X(256)":U 
+      VIEW-AS TEXT 
+     SIZE 24 BY .62 NO-UNDO.
+
+DEFINE VARIABLE l-error-2 AS CHARACTER FORMAT "X(256)":U 
+      VIEW-AS TEXT 
+     SIZE 24 BY .62 NO-UNDO.
 
 DEFINE VARIABLE l-label-1 AS CHARACTER FORMAT "X(256)":U INITIAL "List of Folder:" 
       VIEW-AS TEXT 
@@ -157,11 +176,13 @@ DEFINE VARIABLE i-folder AS LOGICAL INITIAL yes
 DEFINE FRAME F-Main
      i-filen-lw AT ROW 2.62 COL 10 COLON-ALIGNED WIDGET-ID 2
      i-filen-pf AT ROW 2.62 COL 14 COLON-ALIGNED NO-LABEL WIDGET-ID 4
-     btn-search AT ROW 4.15 COL 62 WIDGET-ID 10
      l-folder AT ROW 4.19 COL 13.57 NO-LABEL WIDGET-ID 12
-     i-folder AT ROW 4.23 COL 47 WIDGET-ID 32
-     i-filter AT ROW 5.31 COL 47 WIDGET-ID 16
+     btn-search-new AT ROW 4.23 COL 42 WIDGET-ID 38
+     btn-back AT ROW 4.23 COL 52 WIDGET-ID 40
+     i-folder AT ROW 4.23 COL 66 WIDGET-ID 32
+     i-filter AT ROW 5.31 COL 66 WIDGET-ID 16
      l-filen AT ROW 5.69 COL 13.57 NO-LABEL WIDGET-ID 18
+     btn-search AT ROW 7.46 COL 61 WIDGET-ID 10
      f-p AT ROW 8.69 COL 4 WIDGET-ID 20
      f-w AT ROW 9.5 COL 4 WIDGET-ID 22
      f-r AT ROW 10.19 COL 4 WIDGET-ID 24
@@ -170,8 +191,10 @@ DEFINE FRAME F-Main
      f-all AT ROW 12.62 COL 4 WIDGET-ID 30
      t-info AT ROW 1.27 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
      t-filen AT ROW 2.81 COL 10 COLON-ALIGNED WIDGET-ID 8
+     l-error-1 AT ROW 4.35 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 42
      l-label-1 AT ROW 4.38 COL 1 NO-LABEL WIDGET-ID 34
      l-label-2 AT ROW 5.85 COL 1 NO-LABEL WIDGET-ID 36
+     l-error-2 AT ROW 5.85 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 44
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COL 2.43 ROW 1.31
@@ -224,6 +247,12 @@ ELSE {&WINDOW-NAME} = CURRENT-WINDOW.
 /* SETTINGS FOR FRAME F-Main
    FRAME-NAME                                                           */
 ASSIGN 
+       btn-back:HIDDEN IN FRAME F-Main           = TRUE.
+
+ASSIGN 
+       btn-search-new:HIDDEN IN FRAME F-Main           = TRUE.
+
+ASSIGN 
        f-all:HIDDEN IN FRAME F-Main           = TRUE.
 
 ASSIGN 
@@ -240,6 +269,12 @@ ASSIGN
 
 ASSIGN 
        f-w:HIDDEN IN FRAME F-Main           = TRUE.
+
+ASSIGN 
+       l-error-1:READ-ONLY IN FRAME F-Main        = TRUE.
+
+ASSIGN 
+       l-error-2:READ-ONLY IN FRAME F-Main        = TRUE.
 
 /* SETTINGS FOR COMBO-BOX l-filen IN FRAME F-Main
    ALIGN-L                                                              */
@@ -309,6 +344,46 @@ END.
 &ANALYZE-RESUME
 
 
+&Scoped-define SELF-NAME btn-back
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-back C-Win
+ON CHOOSE OF btn-back IN FRAME F-Main /* Back */
+DO:
+   DEF VAR firstdpplpkt AS INTEGER NO-UNDO.
+   DEF VAR lastbackslash AS INTEGER NO-UNDO.
+   
+   ASSIGN 
+      firstdpplpkt = INDEX(t-filen:SCREEN-VALUE, ":")
+      lastbackslash = R-INDEX(t-filen:SCREEN-VALUE, "~\").      
+   IF LENGTH(t-filen:SCREEN-VALUE) > 2 THEN DO: // if the path is biger als "c:" 
+      ASSIGN 
+         hf-new-path = SUBSTRING(t-filen:SCREEN-VALUE, 1, lastbackslash - 1).
+      IF firstdpplpkt <> 0 THEN 
+         ASSIGN 
+            i-filen-lw:SCREEN-VALUE = SUBSTRING(hf-new-path, 1, firstdpplpkt - 1).
+      ELSE   
+         ASSIGN
+            i-filen-lw:SCREEN-VALUE = "".
+      IF lastbackslash <> 0 THEN
+         ASSIGN
+            i-filen-pf:SCREEN-VALUE = SUBSTRING(hf-new-path, firstdpplpkt + 1).
+      ELSE
+         ASSIGN
+            i-filen-pf:SCREEN-VALUE = "~\".
+      ASSIGN                 
+         t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" + i-filen-pf:SCREEN-VALUE.
+   END.
+   ELSE DO: 
+      ASSIGN
+         i-filen-lw:SCREEN-VALUE = SUBSTRING(t-filen:SCREEN-VALUE, 1, firstdpplpkt - 1).
+         i-filen-pf:SCREEN-VALUE = "~\".
+   END.                       
+   RUN get-filelist.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define SELF-NAME btn-search
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search C-Win
 ON CHOOSE OF btn-search IN FRAME F-Main /* Search */
@@ -325,11 +400,33 @@ END.
 &ANALYZE-RESUME
 
 
+&Scoped-define SELF-NAME btn-search-new
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search-new C-Win
+ON CHOOSE OF btn-search-new IN FRAME F-Main /* Search */
+DO:
+   MESSAGE l-folder:SCREEN-VALUE  VIEW-AS ALERT-BOX.
+   
+   IF l-folder:SCREEN-VALUE <> "" AND l-folder:SCREEN-VALUE <> ? THEN DO:
+      ASSIGN 
+         hf-new-path = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
+         t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
+         i-filen-pf:SCREEN-VALUE = i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE.       
+      RUN get-filelist.
+   END.
+   ELSE 
+      MESSAGE "No folder" VIEW-AS ALERT-BOX.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define SELF-NAME i-filen-lw
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-lw C-Win
 ON MOUSE-SELECT-DBLCLICK OF i-filen-lw IN FRAME F-Main /* Folder path */
 DO:
-  RUN get-dirname.
+   t-info:HIDDEN = TRUE.
+   RUN get-dirname.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -339,8 +436,9 @@ END.
 &Scoped-define SELF-NAME i-filen-pf
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-pf C-Win
 ON MOUSE-SELECT-DBLCLICK OF i-filen-pf IN FRAME F-Main
-DO:
-  RUN get-dirname.
+DO:   
+   t-info:HIDDEN = TRUE.
+   RUN get-dirname.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -380,6 +478,7 @@ ON VALUE-CHANGED OF i-folder IN FRAME F-Main /* Folder */
 DO:
    IF SELF:SCREEN-VALUE = "NO" THEN DO:
       ASSIGN
+         btn-search-new:HIDDEN = YES
          l-filen:ROW = 4.19.
          l-label-1:SCREEN-VALUE = "List of File:".
       IF l-filen:LIST-ITEMS <> ? THEN
@@ -390,7 +489,8 @@ DO:
       ASSIGN
          l-filen:ROW = 5.69. 
       IF l-filen:LIST-ITEMS <> ? THEN
-         ASSIGN 
+         ASSIGN
+            btn-search-new:HIDDEN = YES 
             l-label-1:SCREEN-VALUE = "List of Folder:" 
             l-label-2:HIDDEN = NO.      
    END.
@@ -440,18 +540,22 @@ MAIN-BLOCK:
 DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
    ON END-KEY UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK:
       RUN enable_UI.
-     
-      t-filen:HIDDEN = TRUE.
-      l-filen:HIDDEN = TRUE.
-      l-folder:HIDDEN = TRUE.
-      l-label-1:HIDDEN = TRUE.
-      l-label-2:HIDDEN = TRUE.
-      f-p:HIDDEN = TRUE.
-      f-w:HIDDEN = TRUE.
-      f-r:HIDDEN = TRUE.
-      f-csv:HIDDEN = TRUE.
-      f-txt:HIDDEN = TRUE.
-      f-all:HIDDEN = TRUE.
+      ASSIGN 
+         t-filen:HIDDEN = TRUE
+         l-filen:HIDDEN = TRUE
+         l-folder:HIDDEN = TRUE
+         l-label-1:HIDDEN = TRUE
+         l-label-2:HIDDEN = TRUE
+         f-p:HIDDEN = TRUE
+         f-w:HIDDEN = TRUE
+         f-r:HIDDEN = TRUE
+         f-csv:HIDDEN = TRUE
+         f-txt:HIDDEN = TRUE
+         f-all:HIDDEN = TRUE
+         btn-search-new:HIDDEN = TRUE
+         btn-back:HIDDEN = TRUE
+         l-error-1:HIDDEN = TRUE
+         l-error-2:HIDDEN = TRUE.
      
      
      
@@ -496,10 +600,11 @@ PROCEDURE enable_UI :
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
   DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-p f-w f-r 
-          f-csv f-txt f-all t-info l-label-1 l-label-2 
+          f-csv f-txt f-all t-info l-error-1 l-label-1 l-label-2 l-error-2 
       WITH FRAME F-Main IN WINDOW C-Win.
-  ENABLE i-filen-lw i-filen-pf btn-search l-folder i-folder i-filter l-filen 
-         f-p f-w f-r f-csv f-txt f-all t-info t-filen l-label-1 l-label-2 
+  ENABLE i-filen-lw i-filen-pf l-folder btn-search-new btn-back i-folder 
+         i-filter l-filen btn-search f-p f-w f-r f-csv f-txt f-all t-info 
+         t-filen l-error-1 l-label-1 l-label-2 l-error-2 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
   VIEW C-Win.
@@ -544,9 +649,7 @@ DO WITH FRAME {&FRAME-NAME}:
       i-filen-lw:HIDDEN = TRUE.
       i-filen-pf:HIDDEN = TRUE.
       t-filen:HIDDEN = FALSE.
-   END.   
-
-   
+   END.      
 END.
 END PROCEDURE.
 
@@ -560,50 +663,87 @@ PROCEDURE get-filelist :
   Parameters:  <none>
   Notes:       
 ------------------------------------------------------------------------------*/
-DO WITH FRAME {&FRAME-NAME}: 
-   DEF VAR cDir AS CHARACTER NO-UNDO.
-   DEF VAR cFileStream AS CHARACTER NO-UNDO.
-   DEF VAR hf-first-file AS LOG NO-UNDO INIT NO.
-   DEF VAR hf-first-folder AS LOG NO-UNDO INIT NO.
-   DEF VAR hf-count AS INT NO-UNDO. 
-   DEF VAR hf-type AS CHARACTER NO-UNDO.
-   DEF VAR hf-path AS CHARACTER NO-UNDO.
+DO WITH FRAME {&FRAME-NAME}:             
+   DEF VAR hf-first-file   AS LOG NO-UNDO INIT NO.
+   DEF VAR hf-first-folder AS LOG NO-UNDO INIT NO. 
+   DEF VAR cDir            AS CHAR NO-UNDO.
+   DEF VAR cFileStream     AS CHAR NO-UNDO.
+   DEF VAR hf-type         AS CHAR NO-UNDO.
+   DEF VAR hf-path         AS CHAR NO-UNDO.
+   DEF VAR hf-ext          AS CHAR NO-UNDO.
    
    l-filen:LIST-ITEMS = "".
    l-folder:LIST-ITEMS = "".
-   ASSIGN 
-      hf-count = 0
-      cDir = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE.        
-   INPUT FROM OS-DIR (cDir).
-   REPEAT:
-      IMPORT cFileStream.
+   IF hf-new-path = "" THEN
       ASSIGN 
-         hf-path = cDir + "~\" + cFileStream .       
-      FILE-INFO:FILE-NAME = hf-path.
+         cDir = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE.
+   ELSE 
       ASSIGN 
-         hf-type = SUBSTRING(FILE-INFO:FILE-TYPE, 1,1 ).     
-      IF cFileStream <> "." AND cFileStream <> ".." THEN DO:
-         IF hf-type = "F" THEN DO:
-            l-filen:ADD-LAST(cFileStream).
-            IF NOT hf-first-file THEN DO:   
-               l-filen:SCREEN-VALUE = cFileStream.
-               ASSIGN hf-first-file = YES.
-               l-filen:HIDDEN = FALSE.
-               l-label-1:HIDDEN = FALSE.
+         cDir = hf-new-path.
+   IF cDir <> ? AND cDir <> "" THEN DO:
+      INPUT FROM OS-DIR (cDir).
+      REPEAT:
+         IMPORT cFileStream. // file name
+         ASSIGN 
+            hf-path = cDir + "~\" + cFileStream. // add "\" between path and file name      
+         FILE-INFO:FILE-NAME = hf-path.
+         
+         ASSIGN 
+            hf-type = SUBSTRING(FILE-INFO:FILE-TYPE, 1,1 ). 
+            
+         IF cFileStream <> "." AND cFileStream <> ".." THEN DO:
+            IF hf-type = "F" THEN DO:
+               l-filen:ADD-LAST(cFileStream).
+               IF NOT hf-first-file THEN DO:   
+                  l-filen:SCREEN-VALUE = cFileStream.
+                  ASSIGN 
+                     hf-first-file = YES
+                     l-filen:HIDDEN = FALSE
+                     l-label-1:HIDDEN = FALSE.
+               END.
+            END.
+            ELSE IF hf-type = "D" AND i-folder:SCREEN-VALUE = "YES" THEN DO:               
+               l-folder:ADD-LAST(cFileStream).
+               IF NOT hf-first-folder THEN DO:
+                  l-folder:SCREEN-VALUE = cFileStream.
+                  ASSIGN 
+                     hf-first-folder = YES 
+                     btn-back:HIDDEN = FALSE
+                     btn-search-new:HIDDEN = FALSE
+                     l-folder:HIDDEN = FALSE
+                     l-label-1:HIDDEN = FALSE
+                     l-label-2:HIDDEN = FALSE.
+               END.  
             END.
          END.
-         ELSE IF hf-type = "D" AND i-folder:SCREEN-VALUE = "YES" THEN DO:
-            l-folder:ADD-LAST(cFileStream).
-            IF NOT hf-first-folder THEN DO:   
-               l-folder:SCREEN-VALUE = cFileStream.
-               ASSIGN hf-first-folder = YES.
-               l-folder:HIDDEN = FALSE.
-               l-label-1:HIDDEN = FALSE.
-               l-label-2:HIDDEN = FALSE.
-            END.  
-         END.
       END.
+      ASSIGN hf-new-path = "".
    END.
+   ELSE
+      MESSAGE "path not ok" VIEW-AS ALERT-BOX.
+   
+   IF (l-folder:SCREEN-VALUE = ? OR l-folder:SCREEN-VALUE = "") AND i-folder:SCREEN-VALUE = "yes" THEN DO:
+      ASSIGN 
+         l-error-1:SCREEN-VALUE = "Has no folder!"
+         l-error-1:HIDDEN = FALSE
+         l-folder:HIDDEN = TRUE
+         btn-search-new:HIDDEN = TRUE.
+   END.
+   IF l-filen:SCREEN-VALUE = ? OR l-folder:SCREEN-VALUE = "" THEN DO:
+      ASSIGN
+         l-filen:HIDDEN = TRUE.
+      IF i-folder:SCREEN-VALUE = "yes"  THEN
+         ASSIGN 
+            l-error-2:SCREEN-VALUE = "Has no File!"
+            l-error-2:HIDDEN = FALSE.
+      ELSE 
+         ASSIGN 
+            l-error-1:SCREEN-VALUE = "Has no File!"
+            l-error-1:HIDDEN = FALSE
+            l-label-2:HIDDEN = YES
+            l-filen:HIDDEN= TRUE.     
+   END.
+      
    
 END.
 END PROCEDURE.
