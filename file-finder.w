@@ -357,9 +357,11 @@ DO:
       l-error-1:HIDDEN = TRUE      
       l-error-2:HIDDEN = TRUE.
       hf-new-path = SUBSTRING(t-filen:SCREEN-VALUE, 1, lastbackslash - 1).   
-   IF LENGTH(hf-new-path) < 3 THEN 
-      ASSIGN 
-         hf-new-path = hf-new-path + "~\".
+   IF LENGTH(hf-new-path) < 3 THEN DO:
+      ASSIGN
+         SELF:HIDDEN = TRUE 
+         hf-new-path = hf-new-path + "~\".   
+   END.
    IF firstdpplpkt <> 0 THEN 
       ASSIGN 
          i-filen-lw:SCREEN-VALUE = SUBSTRING(hf-new-path, 1, firstdpplpkt - 1).
@@ -369,16 +371,11 @@ DO:
    IF lastbackslash <> 0 THEN
       ASSIGN
          i-filen-pf:SCREEN-VALUE = SUBSTRING(hf-new-path, firstdpplpkt + 1).
-   ELSE
-      ASSIGN
-         i-filen-pf:SCREEN-VALUE = "~\".
+   //ELSE
+      //ASSIGN
+         //i-filen-pf:SCREEN-VALUE = "~\".
    ASSIGN                 
       t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" + i-filen-pf:SCREEN-VALUE.
-   IF LENGTH(t-filen:SCREEN-VALUE) = 2  THEN DO: 
-      ASSIGN
-         i-filen-pf:SCREEN-VALUE = "~\"  
-         t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" + i-filen-pf:SCREEN-VALUE. 
-   END. 
    ASSIGN 
       hf-new-path = t-filen:SCREEN-VALUE.
       i-filen-lw:HIDDEN = TRUE.
@@ -417,13 +414,22 @@ END.
 ON CHOOSE OF btn-search-new IN FRAME F-Main /* Search */
 DO:   
    IF l-folder:SCREEN-VALUE <> "" AND l-folder:SCREEN-VALUE <> ? THEN DO:
+      IF i-filen-pf:SCREEN-VALUE = "~\" THEN  
+         ASSIGN 
+            hf-new-path = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + l-folder:SCREEN-VALUE
+            t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + l-folder:SCREEN-VALUE
+         i-filen-pf:SCREEN-VALUE = i-filen-pf:SCREEN-VALUE + l-folder:SCREEN-VALUE.
+      ELSE
+         ASSIGN           
+            hf-new-path = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
+            t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
+         i-filen-pf:SCREEN-VALUE = i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE.
+         
       ASSIGN 
-         hf-new-path = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
-         t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
-         i-filen-pf:SCREEN-VALUE = i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
          i-filen-lw:HIDDEN = TRUE.
          i-filen-pf:HIDDEN = TRUE.
-         t-filen:HIDDEN = FALSE.      
+         t-filen:HIDDEN = FALSE.
+      //MESSAGE  hf-new-path   VIEW-AS ALERT-BOX.      
       RUN get-filelist.
    END.
    ELSE 
@@ -723,7 +729,7 @@ DO WITH FRAME {&FRAME-NAME}:
                   ASSIGN       
                      l-folder:SCREEN-VALUE = cFileStream
                      hf-first-folder = YES 
-                     btn-back:HIDDEN = FALSE
+                     //btn-back:HIDDEN = FALSE
                      btn-search-new:HIDDEN = FALSE
                      l-folder:HIDDEN = FALSE
                      l-label-1:HIDDEN = FALSE
@@ -760,6 +766,9 @@ DO WITH FRAME {&FRAME-NAME}:
             l-label-2:HIDDEN = YES
             l-filen:HIDDEN= TRUE.     
    END.
+   IF LENGTH(t-filen:SCREEN-VALUE) > 3  THEN
+      ASSIGN
+         btn-back:HIDDEN = FALSE.
       
    
 END.
