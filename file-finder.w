@@ -113,7 +113,7 @@ DEFINE VARIABLE l-folder AS CHARACTER FORMAT "X(256)":U
      DROP-DOWN-LIST
      SIZE 27 BY 1 NO-UNDO.
 
-DEFINE VARIABLE f-error-1 AS CHARACTER FORMAT "X(256)":U INITIAL "minimum 1 filter" 
+DEFINE VARIABLE f-error-1 AS CHARACTER FORMAT "X(256)":U 
       VIEW-AS TEXT 
      SIZE 24 BY .62
      FGCOLOR 12  NO-UNDO.
@@ -362,9 +362,16 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL C-Win C-Win
 ON WINDOW-CLOSE OF C-Win /* File Finder */
 DO:
-  /* This event will close the window and terminate the procedure.  */
-  APPLY "CLOSE":U TO THIS-PROCEDURE.
-  RETURN NO-APPLY.
+   MESSAGE "Sind Sie sicher? " SKIP "Wollen Sie das Programm beenden?"
+      VIEW-AS ALERT-BOX QUESTION BUTTON YES-NO
+      TITLE "Schliessungsbest„tigung" UPDATE hf-wahl AS LOGICAL.
+      CASE hf-wahl:
+         WHEN TRUE THEN DO:
+            /* This event will close the window and terminate the procedure.  */
+            APPLY "CLOSE":U TO THIS-PROCEDURE.
+            RETURN NO-APPLY. 
+         END.
+      END CASE. 
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -756,6 +763,19 @@ END.
 /* Set CURRENT-WINDOW: this will parent dialog-boxes and frames.        */
 ASSIGN CURRENT-WINDOW                = {&WINDOW-NAME} 
        THIS-PROCEDURE:CURRENT-WINDOW = {&WINDOW-NAME}.
+       
+DEFINE VARIABLE hf-w AS INTEGER     NO-UNDO.
+   DEFINE VARIABLE hf-h AS INTEGER     NO-UNDO.
+   RUN get-screen-size.
+   IF hf-w > {&WINDOW-NAME}:WIDTH-PIXELS AND hf-h > {&WINDOW-NAME}:HEIGHT-PIXELS THEN   
+      ASSIGN   
+         {&WINDOW-NAME}:X = (hf-w / 2) - ({&WINDOW-NAME}:WIDTH-PIXELS / 2 ) 
+         {&WINDOW-NAME}:Y = (hf-h / 2) - ({&WINDOW-NAME}:HEIGHT-PIXELS / 2 ).
+   ELSE  
+      ASSIGN   
+         {&WINDOW-NAME}:X = 0 
+         {&WINDOW-NAME}:Y = 0.       
+       
 
 /* The CLOSE event can be used from inside or outside the procedure to  */
 /* terminate it.                                                        */
@@ -1066,6 +1086,56 @@ PROCEDURE get-filename :
 /*                 i-filen:screen-value = file-name.                                                             */
 /*    end.                                                                                                       */
 /* end.                                                                                                          */
+END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE get-screen-size C-Win 
+PROCEDURE get-screen-size :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+DEFINE VARIABLE myScreens AS "System.Windows.Forms.Screen[]" NO-UNDO.
+DEFINE VARIABLE myScreen AS System.Windows.Forms.Screen NO-UNDO.
+DEFINE VARIABLE oAblParent AS System.IntPtr NO-UNDO.
+DEFINE VARIABLE currentScreen AS CHARACTER   NO-UNDO.
+DEFINE VARIABLE i AS INTEGER     NO-UNDO.
+ 
+/* Get ABL Window HWND into .NET-usable format */
+oAblParent = NEW System.IntPtr(ACTIVE-WINDOW:HWND).
+ 
+myScreens = System.Windows.Forms.Screen:AllScreens.
+
+/* Iterate through the array of screens */
+DO i = 0 TO myScreens:LENGTH - 1:
+ 
+    /* Get current screen - ABL Window */
+    myScreen = System.Windows.Forms.Screen:FromHandle(oAblParent).
+ 
+    /* Get current screen - .NET Form */
+    /* myScreen = System.Windows.Forms.Screen:FromControl(THIS-OBJECT). */
+ 
+    ASSIGN currentScreen = myScreen:DeviceName /* Get / store screen where Progress client is displayed; will always be DISPLAY1 when executed in Procedure Editor */
+           myScreen = CAST(myScreens:GetValue(i), "System.Windows.Forms.Screen").
+
+    IF currentScreen = myScreen:DeviceName THEN  DO:  
+       ASSIGN 
+         hf-w = myScreen:Bounds:WIDTH 
+         hf-h = myScreen:Bounds:HEIGHT.
+    END.
+ 
+    IF VALID-OBJECT(myScreen) THEN
+        DELETE OBJECT myScreen.
+END.
+ 
+IF VALID-OBJECT(myScreens) THEN
+    DELETE OBJECT myScreens.
+ 
+IF VALID-OBJECT(oAblParent) THEN
+    DELETE OBJECT oAblParent.
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
