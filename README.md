@@ -33,7 +33,7 @@ Search for text in the selected file.
 - [x]  - create mask
 - [x]  - creat widget input
 - [x]  - creat procedure get-filelist
-- [ ]  - creat procedure list-filter
+- [1]  - creat procedure list-filter
 - [ ]  - creat procedure text-in-file
 - [ ]  - create filter
 - [ ]  - test
