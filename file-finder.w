@@ -89,12 +89,12 @@ DEFINE BUTTON btn-search-new
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
      DROP-DOWN-LIST
-     SIZE 27 BY .92 NO-UNDO.
+     SIZE 27 BY 1 NO-UNDO.
 
 DEFINE VARIABLE l-folder AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
      DROP-DOWN-LIST
-     SIZE 27 BY .92 NO-UNDO.
+     SIZE 27 BY 1 NO-UNDO.
 
 DEFINE VARIABLE i-filen-lw AS CHARACTER FORMAT "X(256)":U 
      LABEL "Folder path" 
@@ -353,30 +353,37 @@ DO:
    
    ASSIGN 
       firstdpplpkt = INDEX(t-filen:SCREEN-VALUE, ":")
-      lastbackslash = R-INDEX(t-filen:SCREEN-VALUE, "~\").      
-   IF LENGTH(t-filen:SCREEN-VALUE) > 2 THEN DO: // if the path is biger als "c:" 
+      lastbackslash = R-INDEX(t-filen:SCREEN-VALUE, "~\")
+      l-error-1:HIDDEN = TRUE      
+      l-error-2:HIDDEN = TRUE.
+      hf-new-path = SUBSTRING(t-filen:SCREEN-VALUE, 1, lastbackslash - 1).   
+   IF LENGTH(hf-new-path) < 3 THEN 
       ASSIGN 
-         hf-new-path = SUBSTRING(t-filen:SCREEN-VALUE, 1, lastbackslash - 1).
-      IF firstdpplpkt <> 0 THEN 
-         ASSIGN 
-            i-filen-lw:SCREEN-VALUE = SUBSTRING(hf-new-path, 1, firstdpplpkt - 1).
-      ELSE   
-         ASSIGN
-            i-filen-lw:SCREEN-VALUE = "".
-      IF lastbackslash <> 0 THEN
-         ASSIGN
-            i-filen-pf:SCREEN-VALUE = SUBSTRING(hf-new-path, firstdpplpkt + 1).
-      ELSE
-         ASSIGN
-            i-filen-pf:SCREEN-VALUE = "~\".
-      ASSIGN                 
-         t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" + i-filen-pf:SCREEN-VALUE.
-   END.
-   ELSE DO: 
+         hf-new-path = hf-new-path + "~\".
+   IF firstdpplpkt <> 0 THEN 
+      ASSIGN 
+         i-filen-lw:SCREEN-VALUE = SUBSTRING(hf-new-path, 1, firstdpplpkt - 1).
+   ELSE   
       ASSIGN
-         i-filen-lw:SCREEN-VALUE = SUBSTRING(t-filen:SCREEN-VALUE, 1, firstdpplpkt - 1).
+         i-filen-lw:SCREEN-VALUE = "".
+   IF lastbackslash <> 0 THEN
+      ASSIGN
+         i-filen-pf:SCREEN-VALUE = SUBSTRING(hf-new-path, firstdpplpkt + 1).
+   ELSE
+      ASSIGN
          i-filen-pf:SCREEN-VALUE = "~\".
-   END.                       
+   ASSIGN                 
+      t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" + i-filen-pf:SCREEN-VALUE.
+   IF LENGTH(t-filen:SCREEN-VALUE) = 2  THEN DO: 
+      ASSIGN
+         i-filen-pf:SCREEN-VALUE = "~\"  
+         t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" + i-filen-pf:SCREEN-VALUE. 
+   END. 
+   ASSIGN 
+      hf-new-path = t-filen:SCREEN-VALUE.
+      i-filen-lw:HIDDEN = TRUE.
+      i-filen-pf:HIDDEN = TRUE.
+      t-filen:HIDDEN = FALSE.
    RUN get-filelist.
 END.
 
@@ -388,8 +395,13 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search C-Win
 ON CHOOSE OF btn-search IN FRAME F-Main /* Search */
 DO:
-   IF t-filen:SCREEN-VALUE <> "" THEN
-      RUN get-filelist.
+   IF t-filen:SCREEN-VALUE <> "" THEN DO: 
+      ASSIGN
+         i-filen-lw:HIDDEN = TRUE.
+         i-filen-pf:HIDDEN = TRUE.
+         t-filen:HIDDEN = FALSE.
+      RUN get-filelist.      
+   END.
    ELSE DO:
       t-info:FGCOLOR = 12.
       t-info:SCREEN-VALUE = "Select folder first". 
@@ -403,14 +415,15 @@ END.
 &Scoped-define SELF-NAME btn-search-new
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search-new C-Win
 ON CHOOSE OF btn-search-new IN FRAME F-Main /* Search */
-DO:
-   MESSAGE l-folder:SCREEN-VALUE  VIEW-AS ALERT-BOX.
-   
+DO:   
    IF l-folder:SCREEN-VALUE <> "" AND l-folder:SCREEN-VALUE <> ? THEN DO:
       ASSIGN 
          hf-new-path = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
          t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
-         i-filen-pf:SCREEN-VALUE = i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE.       
+         i-filen-pf:SCREEN-VALUE = i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
+         i-filen-lw:HIDDEN = TRUE.
+         i-filen-pf:HIDDEN = TRUE.
+         t-filen:HIDDEN = FALSE.      
       RUN get-filelist.
    END.
    ELSE 
@@ -699,20 +712,24 @@ DO WITH FRAME {&FRAME-NAME}:
                   ASSIGN 
                      hf-first-file = YES
                      l-filen:HIDDEN = FALSE
-                     l-label-1:HIDDEN = FALSE.
+                     l-label-1:HIDDEN = FALSE
+                     l-error-1:HIDDEN = TRUE
+                     l-error-2:HIDDEN = TRUE.
                END.
             END.
             ELSE IF hf-type = "D" AND i-folder:SCREEN-VALUE = "YES" THEN DO:               
                l-folder:ADD-LAST(cFileStream).
                IF NOT hf-first-folder THEN DO:
-                  l-folder:SCREEN-VALUE = cFileStream.
-                  ASSIGN 
+                  ASSIGN       
+                     l-folder:SCREEN-VALUE = cFileStream
                      hf-first-folder = YES 
                      btn-back:HIDDEN = FALSE
                      btn-search-new:HIDDEN = FALSE
                      l-folder:HIDDEN = FALSE
                      l-label-1:HIDDEN = FALSE
-                     l-label-2:HIDDEN = FALSE.
+                     l-label-2:HIDDEN = FALSE
+                     l-error-1:HIDDEN = TRUE
+                     l-error-2:HIDDEN = TRUE.
                END.  
             END.
          END.
