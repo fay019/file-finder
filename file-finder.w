@@ -55,10 +55,11 @@ DEF VAR hf-new-path AS CHAR NO-UNDO INIT "".
 /* Standard List Definitions                                            */
 &Scoped-Define ENABLED-OBJECTS i-filen-lw i-filen-pf l-folder ~
 btn-search-new btn-back i-folder i-filter l-filen btn-search f-p f-w f-r ~
-f-csv f-txt f-all t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 
+f-csv f-txt f-all t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 ~
+f-error-1 
 &Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
 i-filter l-filen f-p f-w f-r f-csv f-txt f-all t-info l-error-1 l-label-1 ~
-l-label-2 l-error-2 
+l-label-2 l-error-2 f-error-1 
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
@@ -66,6 +67,22 @@ l-label-2 l-error-2
 /* _UIB-PREPROCESSOR-BLOCK-END */
 &ANALYZE-RESUME
 
+
+/* ************************  Function Prototypes ********************** */
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-check-filter C-Win 
+FUNCTION f-check-filter RETURNS LOGICAL
+  ( /* parameter-definitions */ )  FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-check-path C-Win 
+FUNCTION f-check-path RETURNS LOGICAL
+  (  )  FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
 
 
 /* ***********************  Control Definitions  ********************** */
@@ -95,6 +112,11 @@ DEFINE VARIABLE l-folder AS CHARACTER FORMAT "X(256)":U
      VIEW-AS COMBO-BOX INNER-LINES 10
      DROP-DOWN-LIST
      SIZE 27 BY 1 NO-UNDO.
+
+DEFINE VARIABLE f-error-1 AS CHARACTER FORMAT "X(256)":U INITIAL "minimum 1 filter" 
+      VIEW-AS TEXT 
+     SIZE 24 BY .62
+     FGCOLOR 12  NO-UNDO.
 
 DEFINE VARIABLE i-filen-lw AS CHARACTER FORMAT "X(256)":U 
      LABEL "Folder path" 
@@ -128,7 +150,8 @@ DEFINE VARIABLE t-filen AS CHARACTER FORMAT "X(256)":U
 
 DEFINE VARIABLE t-info AS CHARACTER FORMAT "X(256)":U 
       VIEW-AS TEXT 
-     SIZE 47 BY 1 NO-UNDO.
+     SIZE 47 BY 1
+     FGCOLOR 12  NO-UNDO.
 
 DEFINE VARIABLE f-all AS LOGICAL INITIAL yes 
      LABEL "all other" 
@@ -195,6 +218,7 @@ DEFINE FRAME F-Main
      l-label-1 AT ROW 4.38 COL 1 NO-LABEL WIDGET-ID 34
      l-label-2 AT ROW 5.85 COL 1 NO-LABEL WIDGET-ID 36
      l-error-2 AT ROW 5.85 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 44
+     f-error-1 AT ROW 13.65 COL 2 COLON-ALIGNED NO-LABEL WIDGET-ID 46
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COL 2.43 ROW 1.31
@@ -257,6 +281,9 @@ ASSIGN
 
 ASSIGN 
        f-csv:HIDDEN IN FRAME F-Main           = TRUE.
+
+ASSIGN 
+       f-error-1:READ-ONLY IN FRAME F-Main        = TRUE.
 
 ASSIGN 
        f-p:HIDDEN IN FRAME F-Main           = TRUE.
@@ -400,8 +427,9 @@ DO:
       RUN get-filelist.      
    END.
    ELSE DO:
-      t-info:FGCOLOR = 12.
-      t-info:SCREEN-VALUE = "Select folder first". 
+      ASSIGN
+         t-info:HIDDEN = FALSE
+         t-info:SCREEN-VALUE = "Select folder first". 
    END.
 END.
 
@@ -440,6 +468,180 @@ END.
 &ANALYZE-RESUME
 
 
+&Scoped-define SELF-NAME f-all
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL f-all C-Win
+ON VALUE-CHANGED OF f-all IN FRAME F-Main /* all other */
+DO:
+   // RUN p-check-filter.
+   DYNAMIC-FUNCTION('f-check-filter':U).
+   DYNAMIC-FUNCTION('f-check-path':U).    
+   IF NOT f-check-path() THEN DO:
+      RUN get-filelist.
+      ASSIGN SELF:SCREEN-VALUE = "yes".
+      LEAVE.
+   END.
+   IF f-check-filter() THEN DO:
+      ASSIGN 
+         SELF:SCREEN-VALUE = "yes"
+         f-error-1:HIDDEN = FALSE
+         f-error-1:SCREEN-VALUE = "minimum 1 filter".
+   END.
+   ELSE DO:
+      ASSIGN
+         f-error-1:HIDDEN = TRUE.    
+      RUN get-filelist.
+   END.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME f-csv
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL f-csv C-Win
+ON VALUE-CHANGED OF f-csv IN FRAME F-Main /* .csv */
+DO:
+   // RUN p-check-filter.
+   DYNAMIC-FUNCTION('f-check-filter':U).
+   DYNAMIC-FUNCTION('f-check-path':U).    
+   IF NOT f-check-path() THEN DO:
+      RUN get-filelist.
+      ASSIGN SELF:SCREEN-VALUE = "yes".
+      LEAVE.
+   END.
+   IF f-check-filter() THEN DO:
+      ASSIGN 
+         SELF:SCREEN-VALUE = "yes"
+         f-error-1:HIDDEN = FALSE
+         f-error-1:SCREEN-VALUE = "minimum 1 filter".
+   END.
+   ELSE DO:
+      ASSIGN
+         f-error-1:HIDDEN = TRUE.    
+      RUN get-filelist.
+   END.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME f-p
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL f-p C-Win
+ON VALUE-CHANGED OF f-p IN FRAME F-Main /* .p */
+DO:
+   // RUN p-check-filter.
+   DYNAMIC-FUNCTION('f-check-filter':U).
+   DYNAMIC-FUNCTION('f-check-path':U).    
+   IF NOT f-check-path() THEN DO:
+      RUN get-filelist.
+      ASSIGN SELF:SCREEN-VALUE = "yes".
+      LEAVE.
+   END.
+   IF f-check-filter() THEN DO:
+      ASSIGN 
+         SELF:SCREEN-VALUE = "yes"
+         f-error-1:HIDDEN = FALSE
+         f-error-1:SCREEN-VALUE = "minimum 1 filter".
+   END.
+   ELSE DO:
+      ASSIGN
+         f-error-1:HIDDEN = TRUE.    
+      RUN get-filelist.
+   END.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME f-r
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL f-r C-Win
+ON VALUE-CHANGED OF f-r IN FRAME F-Main /* .r */
+DO:
+   // RUN p-check-filter.
+   DYNAMIC-FUNCTION('f-check-filter':U).
+   DYNAMIC-FUNCTION('f-check-path':U).    
+   IF NOT f-check-path() THEN DO:
+      RUN get-filelist.
+      ASSIGN SELF:SCREEN-VALUE = "yes".
+      LEAVE.
+   END.
+   IF f-check-filter() THEN DO:
+      ASSIGN 
+         SELF:SCREEN-VALUE = "yes"
+         f-error-1:HIDDEN = FALSE
+         f-error-1:SCREEN-VALUE = "minimum 1 filter".
+   END.
+   ELSE DO:
+      ASSIGN 
+         f-error-1:HIDDEN = TRUE.     
+      RUN get-filelist.
+   END.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME f-txt
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL f-txt C-Win
+ON VALUE-CHANGED OF f-txt IN FRAME F-Main /* .txt */
+DO:
+   // RUN p-check-filter.
+   DYNAMIC-FUNCTION('f-check-filter':U).
+   DYNAMIC-FUNCTION('f-check-path':U).    
+   IF NOT f-check-path() THEN DO:
+      RUN get-filelist.
+      ASSIGN SELF:SCREEN-VALUE = "yes".
+      LEAVE.
+   END.
+   IF f-check-filter() THEN DO:
+      ASSIGN 
+         SELF:SCREEN-VALUE = "yes"
+         f-error-1:HIDDEN = FALSE
+         f-error-1:SCREEN-VALUE = "minimum 1 filter".
+   END.
+   ELSE DO:
+      ASSIGN
+         f-error-1:HIDDEN = TRUE. 
+      RUN get-filelist.
+   END.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME f-w
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL f-w C-Win
+ON VALUE-CHANGED OF f-w IN FRAME F-Main /* .w */
+DO:
+   // RUN p-check-filter.
+   DYNAMIC-FUNCTION('f-check-filter':U).
+   DYNAMIC-FUNCTION('f-check-path':U).    
+   IF NOT f-check-path() THEN DO:
+      RUN get-filelist.
+      ASSIGN SELF:SCREEN-VALUE = "yes".
+      LEAVE.
+   END.
+   IF f-check-filter() THEN DO:
+      ASSIGN 
+         SELF:SCREEN-VALUE = "yes"
+         f-error-1:HIDDEN = FALSE
+         f-error-1:SCREEN-VALUE = "minimum 1 filter".
+   END.
+   ELSE DO:
+      ASSIGN
+         f-error-1:HIDDEN = TRUE.    
+      RUN get-filelist.
+   END.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define SELF-NAME i-filen-lw
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-lw C-Win
 ON MOUSE-SELECT-DBLCLICK OF i-filen-lw IN FRAME F-Main /* Folder path */
@@ -469,20 +671,30 @@ END.
 ON VALUE-CHANGED OF i-filter IN FRAME F-Main /* Filter */
 DO:
    IF SELF:SCREEN-VALUE = "yes" THEN DO:
-      f-p:HIDDEN = FALSE.
-      f-w:HIDDEN = FALSE.
-      f-r:HIDDEN = FALSE.
-      f-csv:HIDDEN = FALSE.
-      f-txt:HIDDEN = FALSE.
-      f-all:HIDDEN = FALSE.
+      ASSIGN
+         f-p:HIDDEN = FALSE
+         f-w:HIDDEN = FALSE
+         f-r:HIDDEN = FALSE
+         f-csv:HIDDEN = FALSE
+         f-txt:HIDDEN = FALSE
+         f-all:HIDDEN = FALSE.
+         RUN get-filelist.
    END.
    ELSE DO:
-      f-p:HIDDEN = TRUE.
-      f-w:HIDDEN = TRUE.
-      f-r:HIDDEN = TRUE.
-      f-csv:HIDDEN = TRUE.
-      f-txt:HIDDEN = TRUE.
-      f-all:HIDDEN = TRUE.
+      ASSIGN
+         f-p:HIDDEN = TRUE
+         f-p:SCREEN-VALUE = "yes"
+         f-w:HIDDEN = TRUE   
+         f-w:SCREEN-VALUE = "yes"
+         f-r:HIDDEN = TRUE  
+         f-r:SCREEN-VALUE = "yes"
+         f-csv:HIDDEN = TRUE  
+         f-csv:SCREEN-VALUE = "yes"
+         f-txt:HIDDEN = TRUE  
+         f-txt:SCREEN-VALUE = "yes"
+         f-all:HIDDEN = TRUE 
+         f-all:SCREEN-VALUE = "yes".
+         RUN get-filelist.
    END.
   
 END.
@@ -574,7 +786,9 @@ DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
          btn-search-new:HIDDEN = TRUE
          btn-back:HIDDEN = TRUE
          l-error-1:HIDDEN = TRUE
-         l-error-2:HIDDEN = TRUE.
+         l-error-2:HIDDEN = TRUE
+         f-error-1:HIDDEN = TRUE
+         t-info:HIDDEN = TRUE.
      
      
      
@@ -620,10 +834,11 @@ PROCEDURE enable_UI :
 ------------------------------------------------------------------------------*/
   DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-p f-w f-r 
           f-csv f-txt f-all t-info l-error-1 l-label-1 l-label-2 l-error-2 
+          f-error-1 
       WITH FRAME F-Main IN WINDOW C-Win.
   ENABLE i-filen-lw i-filen-pf l-folder btn-search-new btn-back i-folder 
          i-filter l-filen btn-search f-p f-w f-r f-csv f-txt f-all t-info 
-         t-filen l-error-1 l-label-1 l-label-2 l-error-2 
+         t-filen l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
   VIEW C-Win.
@@ -682,6 +897,8 @@ PROCEDURE get-filelist :
   Parameters:  <none>
   Notes:       
 ------------------------------------------------------------------------------*/
+
+DYNAMIC-FUNCTION('f-check-path':U).
 DO WITH FRAME {&FRAME-NAME}:             
    DEF VAR hf-first-file   AS LOG NO-UNDO INIT NO.
    DEF VAR hf-first-folder AS LOG NO-UNDO INIT NO. 
@@ -690,6 +907,7 @@ DO WITH FRAME {&FRAME-NAME}:
    DEF VAR hf-type         AS CHAR NO-UNDO.
    DEF VAR hf-path         AS CHAR NO-UNDO.
    DEF VAR hf-ext          AS CHAR NO-UNDO.
+   DEF VAR lastpkt         AS INT  NO-UNDO.
    
    l-filen:LIST-ITEMS = "".
    l-folder:LIST-ITEMS = "".
@@ -698,11 +916,13 @@ DO WITH FRAME {&FRAME-NAME}:
          cDir = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE.
    ELSE 
       ASSIGN 
-         cDir = hf-new-path.
-   IF cDir <> ? AND cDir <> "" THEN DO:
+         cDir = hf-new-path. 
+   //MESSAGE f-check-path(cDir) = YES VIEW-AS ALERT-BOX. 
+   IF f-check-path() THEN DO:
       INPUT FROM OS-DIR (cDir).
       REPEAT:
-         IMPORT cFileStream. // file name
+         IMPORT cFileStream. // file name 
+         
          ASSIGN 
             hf-path = cDir + "~\" + cFileStream. // add "\" between path and file name      
          FILE-INFO:FILE-NAME = hf-path.
@@ -711,7 +931,22 @@ DO WITH FRAME {&FRAME-NAME}:
             hf-type = SUBSTRING(FILE-INFO:FILE-TYPE, 1,1 ). 
             
          IF cFileStream <> "." AND cFileStream <> ".." THEN DO:
-            IF hf-type = "F" THEN DO:
+            IF hf-type = "F" THEN DO:                
+               ASSIGN 
+                  lastpkt = R-INDEX (cFileStream, ".").
+               IF lastpkt <> 0 THEN
+                  ASSIGN hf-ext = SUBSTRING(cFileStream, lastpkt + 1).
+               ELSE   
+                  ASSIGN hf-ext = "".                     
+               IF i-filter:SCREEN-VALUE = "yes" AND f-p:SCREEN-VALUE = "no" AND hf-ext = "p" THEN NEXT.
+               IF i-filter:SCREEN-VALUE = "yes" AND f-w:SCREEN-VALUE = "no" AND hf-ext = "w" THEN NEXT.
+               IF i-filter:SCREEN-VALUE = "yes" AND f-r:SCREEN-VALUE = "no" AND hf-ext = "r" THEN NEXT.
+               IF i-filter:SCREEN-VALUE = "yes" AND f-csv:SCREEN-VALUE = "no" AND hf-ext = "csv" THEN NEXT.
+               IF i-filter:SCREEN-VALUE = "yes" AND f-txt:SCREEN-VALUE = "no" AND hf-ext = "txt" THEN NEXT.
+               IF i-filter:SCREEN-VALUE = "yes" AND f-all:SCREEN-VALUE = "no" AND 
+                  ( hf-ext <> "p" AND hf-ext <> "w" AND hf-ext <> "r" AND hf-ext <> "csv" AND hf-ext <> "txt")  
+                  THEN NEXT.
+                  
                l-filen:ADD-LAST(cFileStream).
                IF NOT hf-first-file THEN DO:   
                   l-filen:SCREEN-VALUE = cFileStream.
@@ -741,36 +976,38 @@ DO WITH FRAME {&FRAME-NAME}:
          END.
       END.
       ASSIGN hf-new-path = "".
-   END.
-   ELSE
-      MESSAGE "path not ok" VIEW-AS ALERT-BOX.
-   
-   IF (l-folder:SCREEN-VALUE = ? OR l-folder:SCREEN-VALUE = "") AND i-folder:SCREEN-VALUE = "yes" THEN DO:
-      ASSIGN 
-         l-error-1:SCREEN-VALUE = "Has no folder!"
-         l-error-1:HIDDEN = FALSE
-         l-folder:HIDDEN = TRUE
-         btn-search-new:HIDDEN = TRUE.
-   END.
-   IF l-filen:SCREEN-VALUE = ? OR l-folder:SCREEN-VALUE = "" THEN DO:
-      ASSIGN
-         l-filen:HIDDEN = TRUE.
-      IF i-folder:SCREEN-VALUE = "yes"  THEN
+      IF (l-folder:SCREEN-VALUE = ? OR l-folder:SCREEN-VALUE = "") AND i-folder:SCREEN-VALUE = "yes" THEN DO:
          ASSIGN 
-            l-error-2:SCREEN-VALUE = "Has no File!"
-            l-error-2:HIDDEN = FALSE.
-      ELSE 
-         ASSIGN 
-            l-error-1:SCREEN-VALUE = "Has no File!"
+            l-error-1:SCREEN-VALUE = "Has no folder!"
             l-error-1:HIDDEN = FALSE
-            l-label-2:HIDDEN = YES
-            l-filen:HIDDEN= TRUE.     
-   END.
-   IF LENGTH(t-filen:SCREEN-VALUE) > 3  THEN
-      ASSIGN
-         btn-back:HIDDEN = FALSE.
+            l-folder:HIDDEN = TRUE
+            btn-search-new:HIDDEN = TRUE.
+      END.
+      IF l-filen:SCREEN-VALUE = ? OR l-folder:SCREEN-VALUE = "" THEN DO:
+         ASSIGN
+            l-filen:HIDDEN = TRUE.
+         IF i-folder:SCREEN-VALUE = "yes"  THEN
+            ASSIGN 
+               l-error-2:SCREEN-VALUE = "Has no File!"
+               l-error-2:HIDDEN = FALSE.
+         ELSE 
+            ASSIGN 
+               l-error-1:SCREEN-VALUE = "Has no File!"
+               l-error-1:HIDDEN = FALSE
+               l-label-2:HIDDEN = YES
+               l-filen:HIDDEN= TRUE.     
+      END.
+      IF LENGTH(t-filen:SCREEN-VALUE) > 3  THEN
+         ASSIGN
+            btn-back:HIDDEN = FALSE.
       
-   
+   END.
+   ELSE DO:
+      ASSIGN 
+         t-info:HIDDEN = FALSE
+         t-info:SCREEN-VALUE = "Select folder first".  
+   END.
+
 END.
 END PROCEDURE.
 
@@ -830,6 +1067,85 @@ PROCEDURE get-filename :
 /*    end.                                                                                                       */
 /* end.                                                                                                          */
 END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-check-filter C-Win 
+PROCEDURE p-check-filter :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+DO WITH FRAME {&FRAME-NAME}:  
+   DEF VAR hf-count-f AS INT NO-UNDO INIT 0.   
+   
+   IF f-p:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
+   IF f-w:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
+   IF f-r:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
+   IF f-csv:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
+   IF f-txt:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
+   IF f-all:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1.
+   IF hf-count-f > 5 THEN DO:
+      ASSIGN              
+         f-error-1:HIDDEN = FALSE
+         f-error-1:SCREEN-VALUE = "minimum 1 filter".
+      SELF:SCREEN-VALUE = "yes".
+      PAUSE 1 NO-MESSAGE.
+      f-error-1:HIDDEN = TRUE.
+   END.
+END.
+
+END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+/* ************************  Function Implementations ***************** */
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-check-filter C-Win 
+FUNCTION f-check-filter RETURNS LOGICAL
+  ( /* parameter-definitions */ ) :
+/*------------------------------------------------------------------------------
+  Purpose:  
+    Notes: check only if all firter is un checked   
+------------------------------------------------------------------------------*/
+DO WITH FRAME {&FRAME-NAME}:  
+   DEF VAR hf-count-f AS INT NO-UNDO. 
+   ASSIGN hf-count-f = 0.
+   IF f-p:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
+   IF f-w:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
+   IF f-r:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
+   IF f-csv:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
+   IF f-txt:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
+   IF f-all:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1.  
+   IF hf-count-f > 5 THEN DO:  
+      RETURN TRUE. 
+   END.
+   RETURN FALSE. 
+END.
+END FUNCTION.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-check-path C-Win 
+FUNCTION f-check-path RETURNS LOGICAL
+  (  ) :
+/*------------------------------------------------------------------------------
+  Purpose:  
+    Notes: check only if all firter is un checked   
+------------------------------------------------------------------------------*/
+DO WITH FRAME {&FRAME-NAME}:
+   
+   IF t-filen:SCREEN-VALUE <> ? AND t-filen:SCREEN-VALUE <> "" AND t-filen:SCREEN-VALUE <> ":" THEN DO:  
+      RETURN TRUE. 
+   END.
+   ELSE 
+      RETURN FALSE.
+END.   
+END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
