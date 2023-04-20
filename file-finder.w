@@ -58,12 +58,12 @@ DEF TEMP-TABLE tt-finded
 &Scoped-define FRAME-NAME F-Main
 
 /* Standard List Definitions                                            */
-&Scoped-Define ENABLED-OBJECTS i-filen-lw i-filen-pf l-folder ~
-btn-search-new btn-back i-folder i-filter l-filen btn-search f-p f-w f-r ~
-btn-test f-text f-csv f-txt i-text f-all l-finded t-info t-filen l-error-1 ~
+&Scoped-Define ENABLED-OBJECTS btn-search i-filen-lw i-filen-pf l-folder ~
+btn-search-new btn-back i-folder i-filter l-filen btn-test f-text f-p ~
+i-text f-w f-r l-finded f-csv f-txt f-all t-info t-filen l-error-1 ~
 l-label-1 l-label-2 l-error-2 f-error-1 
 &Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
-i-filter l-filen f-p f-w f-r f-text f-csv f-txt i-text f-all l-finded ~
+i-filter l-filen f-text f-p i-text f-w f-r l-finded f-csv f-txt f-all ~
 t-info l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 
 
 /* Custom List Definitions                                              */
@@ -108,8 +108,8 @@ DEFINE BUTTON btn-back
      SIZE 9 BY .69.
 
 DEFINE BUTTON btn-search 
-     LABEL "Search" 
-     SIZE 15 BY 1.12.
+     LABEL "OK" 
+     SIZE 7 BY 1.12.
 
 DEFINE BUTTON btn-search-new 
      LABEL "Search" 
@@ -178,7 +178,7 @@ DEFINE VARIABLE t-info AS CHARACTER FORMAT "X(256)":U
      SIZE 47 BY 1
      FGCOLOR 12  NO-UNDO.
 
-DEFINE VARIABLE f-text AS INTEGER 
+DEFINE VARIABLE f-text AS INTEGER INITIAL 2 
      VIEW-AS RADIO-SET VERTICAL
      RADIO-BUTTONS 
           "Equal", 1,
@@ -229,6 +229,7 @@ DEFINE VARIABLE i-folder AS LOGICAL INITIAL yes
 /* ************************  Frame Definitions  *********************** */
 
 DEFINE FRAME F-Main
+     btn-search AT ROW 2.54 COL 66.43 WIDGET-ID 10
      i-filen-lw AT ROW 2.62 COL 10 COLON-ALIGNED WIDGET-ID 2
      i-filen-pf AT ROW 2.62 COL 14 COLON-ALIGNED NO-LABEL WIDGET-ID 4
      l-folder AT ROW 4.19 COL 13.57 NO-LABEL WIDGET-ID 12
@@ -237,17 +238,16 @@ DEFINE FRAME F-Main
      i-folder AT ROW 4.23 COL 66 WIDGET-ID 32
      i-filter AT ROW 5.31 COL 66 WIDGET-ID 16
      l-filen AT ROW 5.69 COL 13.57 NO-LABEL WIDGET-ID 18
-     btn-search AT ROW 7.46 COL 61 WIDGET-ID 10
+     btn-test AT ROW 7.46 COL 51 WIDGET-ID 48
+     f-text AT ROW 7.58 COL 67 NO-LABEL WIDGET-ID 52
      f-p AT ROW 8.69 COL 4 WIDGET-ID 20
+     i-text AT ROW 8.81 COL 49 COLON-ALIGNED WIDGET-ID 50
      f-w AT ROW 9.5 COL 4 WIDGET-ID 22
      f-r AT ROW 10.19 COL 4 WIDGET-ID 24
-     btn-test AT ROW 10.69 COL 51 WIDGET-ID 48
-     f-text AT ROW 10.81 COL 67 NO-LABEL WIDGET-ID 52
+     l-finded AT ROW 10.69 COL 32 NO-LABEL WIDGET-ID 56
      f-csv AT ROW 11 COL 4 WIDGET-ID 26
      f-txt AT ROW 11.81 COL 4 WIDGET-ID 28
-     i-text AT ROW 12.04 COL 49 COLON-ALIGNED WIDGET-ID 50
      f-all AT ROW 12.62 COL 4 WIDGET-ID 30
-     l-finded AT ROW 13.92 COL 32 NO-LABEL WIDGET-ID 56
      t-info AT ROW 1.27 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
      t-filen AT ROW 2.81 COL 10 COLON-ALIGNED WIDGET-ID 8
      l-error-1 AT ROW 4.35 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 42
@@ -410,7 +410,22 @@ DO:
             APPLY "CLOSE":U TO THIS-PROCEDURE.
             RETURN NO-APPLY. 
          END.
+         OTHERWISE DO:
+            RETURN NO-APPLY.
+         END.
       END CASE. 
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME F-Main
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL F-Main C-Win
+ON GO OF FRAME F-Main
+DO:
+   APPLY "CLOSE":U TO THIS-PROCEDURE.
+   RETURN NO-APPLY.  
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -463,7 +478,7 @@ END.
 
 &Scoped-define SELF-NAME btn-search
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search C-Win
-ON CHOOSE OF btn-search IN FRAME F-Main /* Search */
+ON CHOOSE OF btn-search IN FRAME F-Main /* OK */
 DO:
    IF t-filen:SCREEN-VALUE <> "" THEN DO: 
       ASSIGN
@@ -863,8 +878,8 @@ DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
      
      
      
-      IF NOT THIS-PROCEDURE:PERSISTENT THEN
-         WAIT-FOR CLOSE OF THIS-PROCEDURE.
+/*       IF NOT THIS-PROCEDURE:PERSISTENT THEN */
+/*          WAIT-FOR CLOSE OF THIS-PROCEDURE.  */
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -903,13 +918,13 @@ PROCEDURE enable_UI :
                These statements here are based on the "Other 
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
-  DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-p f-w f-r 
-          f-text f-csv f-txt i-text f-all l-finded t-info l-error-1 l-label-1 
+  DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-text f-p 
+          i-text f-w f-r l-finded f-csv f-txt f-all t-info l-error-1 l-label-1 
           l-label-2 l-error-2 f-error-1 
       WITH FRAME F-Main IN WINDOW C-Win.
-  ENABLE i-filen-lw i-filen-pf l-folder btn-search-new btn-back i-folder 
-         i-filter l-filen btn-search f-p f-w f-r btn-test f-text f-csv f-txt 
-         i-text f-all l-finded t-info t-filen l-error-1 l-label-1 l-label-2 
+  ENABLE btn-search i-filen-lw i-filen-pf l-folder btn-search-new btn-back 
+         i-folder i-filter l-filen btn-test f-text f-p i-text f-w f-r l-finded 
+         f-csv f-txt f-all t-info t-filen l-error-1 l-label-1 l-label-2 
          l-error-2 f-error-1 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
@@ -956,6 +971,7 @@ DO WITH FRAME {&FRAME-NAME}:
       i-filen-pf:HIDDEN = TRUE.
       t-filen:HIDDEN = FALSE.
    END.      
+   RUN get-filelist.
 END.
 END PROCEDURE.
 
@@ -1279,7 +1295,6 @@ DO WITH FRAME {&FRAME-NAME}:
     ELSE
         COPY-LOB FILE (hf-file-path) TO hf-text CONVERT SOURCE CODEPAGE "iso8859-1".
 
-
    DO hf-i = 1 TO LENGTH(hf-text):
       ASSIGN hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
        // Charachter counter
@@ -1319,8 +1334,7 @@ DO WITH FRAME {&FRAME-NAME}:
                      l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(tt-finded.id) + "=> " + tt-finded.txt + "~n".   
                   END.
                   l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "---------------------Next line---------------------~n".
-         END.  
-         
+         END. 
          ASSIGN hf-word = "". 
       END.
    END.  
