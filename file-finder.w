@@ -38,6 +38,11 @@ CREATE WIDGET-POOL.
 
 DEF VAR hf-new-path AS CHAR NO-UNDO INIT "".
 
+DEF TEMP-TABLE tt-finded
+   FIELD id AS INT
+   FIELD txt AS CHAR
+   INDEX id IS PRIMARY UNIQUE id.
+
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
@@ -1212,6 +1217,35 @@ END PROCEDURE.
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-file-to-table C-Win 
+PROCEDURE p-file-to-table :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+
+DO WITH FRAME {&FRAME-NAME}:
+   DEF VAR hf-i AS INT NO-UNDO INIT 0.
+   DEF VAR hf-file-path AS CHAR NO-UNDO.
+   EMPTY TEMP-TABLE tt-finded NO-ERROR.
+   
+   ASSIGN hf-file-path = t-filen:SCREEN-VALUE + "~\" + l-filen:SCREEN-VALUE.
+   INPUT FROM VALUE(hf-file-path).
+   REPEAT TRANSACTION:
+      CREATE tt-finded.
+      ASSIGN   
+         hf-i = hf-i + 1
+         tt-finded.id = hf-i.
+      IMPORT DELIMITER "~n" tt-finded.txt.
+   END.
+   OUTPUT CLOSE.        
+END.
+END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-search-text C-Win 
 PROCEDURE p-search-text :
 /*------------------------------------------------------------------------------
@@ -1220,7 +1254,7 @@ PROCEDURE p-search-text :
   Notes:       
 ------------------------------------------------------------------------------*/
 
-do with frame {&FRAME-NAME}:
+DO WITH FRAME {&FRAME-NAME}:
     DEF VAR hf-start      AS LOG      NO-UNDO INIT NO.
     DEF VAR hf-find       AS LOG      NO-UNDO INIT NO.
     DEF VAR hf-i          AS INT      NO-UNDO.
@@ -1237,9 +1271,9 @@ do with frame {&FRAME-NAME}:
        hf-word = ""
        hf-word-l = ""
        hf-ext = DYNAMIC-FUNCTION('f-get-ext':U,l-filen:SCREEN-VALUE )
-       hf-file-path = t-filen:SCREEN-VALUE + "/" + l-filen:SCREEN-VALUE
+       hf-file-path = t-filen:SCREEN-VALUE + "~\" + l-filen:SCREEN-VALUE
        l-finded:SCREEN-VALUE = "".
-
+    RUN p-file-to-table.
     IF hf-ext <> "p" AND  hf-ext <> "w" AND  hf-ext <> "r" THEN
         COPY-LOB FILE (hf-file-path) TO hf-text CONVERT SOURCE CODEPAGE "utf-8".
     ELSE
@@ -1272,13 +1306,19 @@ do with frame {&FRAME-NAME}:
       
          IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "1" AND hf-word = i-text:SCREEN-VALUE THEN DO:  
                ASSIGN 
-                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "~n" 
-                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(hf-l) + ": " + hf-word-l + "~n".
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "~n". 
+                  FOR EACH tt-finded WHERE tt-finded.id = hf-l NO-LOCK:
+                     l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(tt-finded.id) + "=> " + tt-finded.txt + "~n".   
+                  END. 
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "---------------------Next line---------------------~n".
          END.
          ELSE IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "2" AND hf-word MATCHES ( "*" + i-text:SCREEN-VALUE + "*") THEN DO: 
                ASSIGN 
-                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "~n" 
-                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(hf-l) + ": " + hf-word-l + "~n".
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "~n". 
+                  FOR EACH tt-finded WHERE tt-finded.id = hf-l NO-LOCK:
+                     l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(tt-finded.id) + "=> " + tt-finded.txt + "~n".   
+                  END.
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "---------------------Next line---------------------~n".
          END.  
          
          ASSIGN hf-word = "". 
