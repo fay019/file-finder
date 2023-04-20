@@ -55,11 +55,11 @@ DEF VAR hf-new-path AS CHAR NO-UNDO INIT "".
 /* Standard List Definitions                                            */
 &Scoped-Define ENABLED-OBJECTS i-filen-lw i-filen-pf l-folder ~
 btn-search-new btn-back i-folder i-filter l-filen btn-search f-p f-w f-r ~
-f-csv f-txt f-all t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 ~
-f-error-1 
+btn-test f-text f-csv f-txt i-text f-all l-finded t-info t-filen l-error-1 ~
+l-label-1 l-label-2 l-error-2 f-error-1 
 &Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
-i-filter l-filen f-p f-w f-r f-csv f-txt f-all t-info l-error-1 l-label-1 ~
-l-label-2 l-error-2 f-error-1 
+i-filter l-filen f-p f-w f-r f-text f-csv f-txt i-text f-all l-finded ~
+t-info l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
@@ -84,6 +84,13 @@ FUNCTION f-check-path RETURNS LOGICAL
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-get-ext C-Win 
+FUNCTION f-get-ext RETURNS CHARACTER
+  (INPUT hf-name AS CHAR )  FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
 
 /* ***********************  Control Definitions  ********************** */
 
@@ -103,6 +110,10 @@ DEFINE BUTTON btn-search-new
      LABEL "Search" 
      SIZE 9 BY .69.
 
+DEFINE BUTTON btn-test 
+     LABEL "TesT" 
+     SIZE 15 BY 1.12.
+
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
      DROP-DOWN-LIST
@@ -112,6 +123,10 @@ DEFINE VARIABLE l-folder AS CHARACTER FORMAT "X(256)":U
      VIEW-AS COMBO-BOX INNER-LINES 10
      DROP-DOWN-LIST
      SIZE 27 BY 1 NO-UNDO.
+
+DEFINE VARIABLE l-finded AS CHARACTER 
+     VIEW-AS EDITOR NO-WORD-WRAP SCROLLBAR-HORIZONTAL SCROLLBAR-VERTICAL
+     SIZE 43 BY 4.85 NO-UNDO.
 
 DEFINE VARIABLE f-error-1 AS CHARACTER FORMAT "X(256)":U 
       VIEW-AS TEXT 
@@ -126,6 +141,11 @@ DEFINE VARIABLE i-filen-lw AS CHARACTER FORMAT "X(256)":U
 DEFINE VARIABLE i-filen-pf AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS FILL-IN 
      SIZE 50 BY 1 NO-UNDO.
+
+DEFINE VARIABLE i-text AS CHARACTER FORMAT "X(256)":U 
+     LABEL "text" 
+     VIEW-AS FILL-IN 
+     SIZE 14 BY 1 NO-UNDO.
 
 DEFINE VARIABLE l-error-1 AS CHARACTER FORMAT "X(256)":U 
       VIEW-AS TEXT 
@@ -152,6 +172,13 @@ DEFINE VARIABLE t-info AS CHARACTER FORMAT "X(256)":U
       VIEW-AS TEXT 
      SIZE 47 BY 1
      FGCOLOR 12  NO-UNDO.
+
+DEFINE VARIABLE f-text AS INTEGER 
+     VIEW-AS RADIO-SET VERTICAL
+     RADIO-BUTTONS 
+          "Equal", 1,
+"MAtch", 2
+     SIZE 9 BY 2.15 NO-UNDO.
 
 DEFINE VARIABLE f-all AS LOGICAL INITIAL yes 
      LABEL "all other" 
@@ -209,9 +236,13 @@ DEFINE FRAME F-Main
      f-p AT ROW 8.69 COL 4 WIDGET-ID 20
      f-w AT ROW 9.5 COL 4 WIDGET-ID 22
      f-r AT ROW 10.19 COL 4 WIDGET-ID 24
+     btn-test AT ROW 10.69 COL 51 WIDGET-ID 48
+     f-text AT ROW 10.81 COL 67 NO-LABEL WIDGET-ID 52
      f-csv AT ROW 11 COL 4 WIDGET-ID 26
      f-txt AT ROW 11.81 COL 4 WIDGET-ID 28
+     i-text AT ROW 12.04 COL 49 COLON-ALIGNED WIDGET-ID 50
      f-all AT ROW 12.62 COL 4 WIDGET-ID 30
+     l-finded AT ROW 13.92 COL 32 NO-LABEL WIDGET-ID 56
      t-info AT ROW 1.27 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
      t-filen AT ROW 2.81 COL 10 COLON-ALIGNED WIDGET-ID 8
      l-error-1 AT ROW 4.35 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 42
@@ -222,7 +253,7 @@ DEFINE FRAME F-Main
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COL 2.43 ROW 1.31
-         SIZE 77 BY 15.35 WIDGET-ID 100.
+         SIZE 77 BY 18.85 WIDGET-ID 100.
 
 
 /* *********************** Procedure Settings ************************ */
@@ -242,7 +273,7 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
   CREATE WINDOW C-Win ASSIGN
          HIDDEN             = YES
          TITLE              = "File Finder"
-         HEIGHT             = 16
+         HEIGHT             = 19.35
          WIDTH              = 80
          MAX-HEIGHT         = 39.12
          MAX-WIDTH          = 274.29
@@ -307,6 +338,9 @@ ASSIGN
    ALIGN-L                                                              */
 ASSIGN 
        l-filen:HIDDEN IN FRAME F-Main           = TRUE.
+
+ASSIGN 
+       l-finded:READ-ONLY IN FRAME F-Main        = TRUE.
 
 /* SETTINGS FOR COMBO-BOX l-folder IN FRAME F-Main
    ALIGN-L                                                              */
@@ -469,6 +503,18 @@ DO:
    END.
    ELSE 
       MESSAGE "No folder" VIEW-AS ALERT-BOX.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME btn-test
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-test C-Win
+ON CHOOSE OF btn-test IN FRAME F-Main /* TesT */
+DO:
+   IF i-text:SCREEN-VALUE <> "" THEN
+      RUN p-search-text.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -853,12 +899,13 @@ PROCEDURE enable_UI :
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
   DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-p f-w f-r 
-          f-csv f-txt f-all t-info l-error-1 l-label-1 l-label-2 l-error-2 
-          f-error-1 
+          f-text f-csv f-txt i-text f-all l-finded t-info l-error-1 l-label-1 
+          l-label-2 l-error-2 f-error-1 
       WITH FRAME F-Main IN WINDOW C-Win.
   ENABLE i-filen-lw i-filen-pf l-folder btn-search-new btn-back i-folder 
-         i-filter l-filen btn-search f-p f-w f-r f-csv f-txt f-all t-info 
-         t-filen l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 
+         i-filter l-filen btn-search f-p f-w f-r btn-test f-text f-csv f-txt 
+         i-text f-all l-finded t-info t-filen l-error-1 l-label-1 l-label-2 
+         l-error-2 f-error-1 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
   VIEW C-Win.
@@ -917,8 +964,6 @@ PROCEDURE get-filelist :
   Parameters:  <none>
   Notes:       
 ------------------------------------------------------------------------------*/
-
-DYNAMIC-FUNCTION('f-check-path':U).
 DO WITH FRAME {&FRAME-NAME}:             
    DEF VAR hf-first-file   AS LOG NO-UNDO INIT NO.
    DEF VAR hf-first-folder AS LOG NO-UNDO INIT NO. 
@@ -938,7 +983,7 @@ DO WITH FRAME {&FRAME-NAME}:
       ASSIGN 
          cDir = hf-new-path. 
    //MESSAGE f-check-path(cDir) = YES VIEW-AS ALERT-BOX. 
-   IF f-check-path() THEN DO:
+   IF DYNAMIC-FUNCTION('f-check-path':U) THEN DO:
       INPUT FROM OS-DIR (cDir).
       REPEAT:
          IMPORT cFileStream. // file name 
@@ -951,13 +996,8 @@ DO WITH FRAME {&FRAME-NAME}:
             hf-type = SUBSTRING(FILE-INFO:FILE-TYPE, 1,1 ). 
             
          IF cFileStream <> "." AND cFileStream <> ".." THEN DO:
-            IF hf-type = "F" THEN DO:                
-               ASSIGN 
-                  lastpkt = R-INDEX (cFileStream, ".").
-               IF lastpkt <> 0 THEN
-                  ASSIGN hf-ext = SUBSTRING(cFileStream, lastpkt + 1).
-               ELSE   
-                  ASSIGN hf-ext = "".                     
+            IF hf-type = "F" THEN DO:
+               hf-ext = DYNAMIC-FUNCTION('f-get-ext':U,cFileStream).
                IF i-filter:SCREEN-VALUE = "yes" AND f-p:SCREEN-VALUE = "no" AND hf-ext = "p" THEN NEXT.
                IF i-filter:SCREEN-VALUE = "yes" AND f-w:SCREEN-VALUE = "no" AND hf-ext = "w" THEN NEXT.
                IF i-filter:SCREEN-VALUE = "yes" AND f-r:SCREEN-VALUE = "no" AND hf-ext = "r" THEN NEXT.
@@ -1172,6 +1212,84 @@ END PROCEDURE.
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-search-text C-Win 
+PROCEDURE p-search-text :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+
+do with frame {&FRAME-NAME}:
+    DEF VAR hf-start      AS LOG      NO-UNDO INIT NO.
+    DEF VAR hf-find       AS LOG      NO-UNDO INIT NO.
+    DEF VAR hf-i          AS INT      NO-UNDO.
+    DEF VAR hf-l          AS INT      NO-UNDO.
+    DEF VAR hf-text       AS LONGCHAR NO-UNDO.
+    DEF VAR hf-char       AS CHAR     NO-UNDO.
+    DEF VAR hf-word       AS CHAR     NO-UNDO.
+    DEF VAR hf-word-l     AS CHAR     NO-UNDO.
+    DEF VAR hf-ext        AS CHAR     NO-UNDO.
+    DEF VAR hf-file-path  AS CHAR     NO-UNDO.
+    ASSIGN
+       hf-l = 1
+       hf-text = ""
+       hf-word = ""
+       hf-word-l = ""
+       hf-ext = DYNAMIC-FUNCTION('f-get-ext':U,l-filen:SCREEN-VALUE )
+       hf-file-path = t-filen:SCREEN-VALUE + "/" + l-filen:SCREEN-VALUE
+       l-finded:SCREEN-VALUE = "".
+
+    IF hf-ext <> "p" AND  hf-ext <> "w" AND  hf-ext <> "r" THEN
+        COPY-LOB FILE (hf-file-path) TO hf-text CONVERT SOURCE CODEPAGE "utf-8".
+    ELSE
+        COPY-LOB FILE (hf-file-path) TO hf-text CONVERT SOURCE CODEPAGE "iso8859-1".
+
+
+   DO hf-i = 1 TO LENGTH(hf-text):
+      ASSIGN hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
+       // Charachter counter
+      IF hf-start = NO AND  hf-char <> " "  THEN DO:  // first char of word
+         ASSIGN
+            hf-word = hf-char
+            hf-start = YES.
+      END.
+      ELSE IF hf-start = YES AND hf-char <> " "  THEN DO:  // next char in word
+         ASSIGN
+            hf-word = hf-word + hf-char.
+      END.
+      ELSE IF hf-start = YES AND hf-char <> " "  THEN DO:   // hier I have my word
+         ASSIGN
+            hf-start = NO.
+      END.
+      IF hf-char <> "~n" THEN 
+         ASSIGN hf-word-l = hf-word-l + hf-char.
+      ELSE
+         ASSIGN 
+            hf-l = hf-l  + 1
+            hf-word-l = "".   
+      IF hf-char = "~n" OR hf-char = " " THEN DO: // Line counter 
+      
+         IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "1" AND hf-word = i-text:SCREEN-VALUE THEN DO:  
+               ASSIGN 
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "~n" 
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(hf-l) + ": " + hf-word-l + "~n".
+         END.
+         ELSE IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "2" AND hf-word MATCHES ( "*" + i-text:SCREEN-VALUE + "*") THEN DO: 
+               ASSIGN 
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "~n" 
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(hf-l) + ": " + hf-word-l + "~n".
+         END.  
+         
+         ASSIGN hf-word = "". 
+      END.
+   END.  
+END.
+END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
 /* ************************  Function Implementations ***************** */
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-check-filter C-Win 
@@ -1215,6 +1333,29 @@ DO WITH FRAME {&FRAME-NAME}:
    ELSE 
       RETURN FALSE.
 END.   
+END FUNCTION.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-get-ext C-Win 
+FUNCTION f-get-ext RETURNS CHARACTER
+  (INPUT hf-name AS CHAR ) :
+/*------------------------------------------------------------------------------
+  Purpose:  
+    Notes:  
+------------------------------------------------------------------------------*/
+   DEF VAR lastpkt   AS INT NO-UNDO.
+   DEF VAR hf-result AS CHAR NO-UNDO.
+   
+   ASSIGN 
+      lastpkt = R-INDEX (hf-name, ".").
+   IF lastpkt <> 0 THEN
+      ASSIGN hf-result = SUBSTRING(hf-name, lastpkt + 1).
+   ELSE   
+      ASSIGN hf-result =  "".
+      
+   RETURN hf-result.
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
