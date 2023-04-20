@@ -34,7 +34,7 @@ Search for text in the selected file.
 - [x]  - creat widget input
 - [x]  - creat procedure get-filelist
 - [x]  - creat procedure list-filter
-- [ ]  - creat procedure text-in-file
+- [x]  - creat procedure text-in-file
 - [ ]  - create filter
 - [ ]  - test
 - [ ]  - complate the readme.md
