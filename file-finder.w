@@ -59,11 +59,11 @@ DEF TEMP-TABLE tt-finded
 
 /* Standard List Definitions                                            */
 &Scoped-Define ENABLED-OBJECTS btn-search i-filen-lw i-filen-pf l-folder ~
-btn-search-new btn-back i-folder i-filter l-filen btn-test f-text f-p ~
-i-text f-w f-r l-finded f-csv f-txt f-all t-info t-filen l-error-1 ~
-l-label-1 l-label-2 l-error-2 f-error-1 
+btn-search-new btn-back i-folder i-filter l-filen f-p f-csv btn-test f-text ~
+f-w f-txt f-r f-all i-text l-finded t-info t-filen l-error-1 l-label-1 ~
+l-label-2 l-error-2 f-error-1 
 &Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
-i-filter l-filen f-text f-p i-text f-w f-r l-finded f-csv f-txt f-all ~
+i-filter l-filen f-p f-csv f-text f-w f-txt f-r f-all i-text l-finded ~
 t-info l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 
 
 /* Custom List Definitions                                              */
@@ -131,7 +131,7 @@ DEFINE VARIABLE l-folder AS CHARACTER FORMAT "X(256)":U
 
 DEFINE VARIABLE l-finded AS CHARACTER 
      VIEW-AS EDITOR NO-WORD-WRAP SCROLLBAR-HORIZONTAL SCROLLBAR-VERTICAL
-     SIZE 43 BY 4.85 NO-UNDO.
+     SIZE 76 BY 7 NO-UNDO.
 
 DEFINE VARIABLE f-error-1 AS CHARACTER FORMAT "X(256)":U 
       VIEW-AS TEXT 
@@ -198,12 +198,12 @@ DEFINE VARIABLE f-csv AS LOGICAL INITIAL yes
 DEFINE VARIABLE f-p AS LOGICAL INITIAL yes 
      LABEL ".p" 
      VIEW-AS TOGGLE-BOX
-     SIZE 11.29 BY .69 NO-UNDO.
+     SIZE 6 BY .69 NO-UNDO.
 
 DEFINE VARIABLE f-r AS LOGICAL INITIAL yes 
      LABEL ".r" 
      VIEW-AS TOGGLE-BOX
-     SIZE 11.29 BY .69 NO-UNDO.
+     SIZE 6 BY .69 NO-UNDO.
 
 DEFINE VARIABLE f-txt AS LOGICAL INITIAL yes 
      LABEL ".txt" 
@@ -213,7 +213,7 @@ DEFINE VARIABLE f-txt AS LOGICAL INITIAL yes
 DEFINE VARIABLE f-w AS LOGICAL INITIAL yes 
      LABEL ".w" 
      VIEW-AS TOGGLE-BOX
-     SIZE 11.29 BY .69 NO-UNDO.
+     SIZE 6 BY .69 NO-UNDO.
 
 DEFINE VARIABLE i-filter AS LOGICAL INITIAL no 
      LABEL "Filter" 
@@ -238,23 +238,23 @@ DEFINE FRAME F-Main
      i-folder AT ROW 4.23 COL 66 WIDGET-ID 32
      i-filter AT ROW 5.31 COL 66 WIDGET-ID 16
      l-filen AT ROW 5.69 COL 13.57 NO-LABEL WIDGET-ID 18
-     btn-test AT ROW 7.46 COL 51 WIDGET-ID 48
-     f-text AT ROW 7.58 COL 67 NO-LABEL WIDGET-ID 52
      f-p AT ROW 8.69 COL 4 WIDGET-ID 20
-     i-text AT ROW 8.81 COL 49 COLON-ALIGNED WIDGET-ID 50
+     f-csv AT ROW 8.69 COL 10.86 WIDGET-ID 26
+     btn-test AT ROW 9.23 COL 51 WIDGET-ID 48
+     f-text AT ROW 9.35 COL 67 NO-LABEL WIDGET-ID 52
      f-w AT ROW 9.5 COL 4 WIDGET-ID 22
+     f-txt AT ROW 9.5 COL 10.86 WIDGET-ID 28
      f-r AT ROW 10.19 COL 4 WIDGET-ID 24
-     l-finded AT ROW 10.69 COL 32 NO-LABEL WIDGET-ID 56
-     f-csv AT ROW 11 COL 4 WIDGET-ID 26
-     f-txt AT ROW 11.81 COL 4 WIDGET-ID 28
-     f-all AT ROW 12.62 COL 4 WIDGET-ID 30
+     f-all AT ROW 10.31 COL 10.86 WIDGET-ID 30
+     i-text AT ROW 10.58 COL 49 COLON-ALIGNED WIDGET-ID 50
+     l-finded AT ROW 12.31 COL 1 NO-LABEL WIDGET-ID 56
      t-info AT ROW 1.27 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
      t-filen AT ROW 2.81 COL 10 COLON-ALIGNED WIDGET-ID 8
      l-error-1 AT ROW 4.35 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 42
      l-label-1 AT ROW 4.38 COL 1 NO-LABEL WIDGET-ID 34
      l-label-2 AT ROW 5.85 COL 1 NO-LABEL WIDGET-ID 36
      l-error-2 AT ROW 5.85 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 44
-     f-error-1 AT ROW 13.65 COL 2 COLON-ALIGNED NO-LABEL WIDGET-ID 46
+     f-error-1 AT ROW 11.04 COL 2 COLON-ALIGNED NO-LABEL WIDGET-ID 46
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COL 2.43 ROW 1.31
@@ -918,13 +918,13 @@ PROCEDURE enable_UI :
                These statements here are based on the "Other 
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
-  DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-text f-p 
-          i-text f-w f-r l-finded f-csv f-txt f-all t-info l-error-1 l-label-1 
+  DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-p f-csv 
+          f-text f-w f-txt f-r f-all i-text l-finded t-info l-error-1 l-label-1 
           l-label-2 l-error-2 f-error-1 
       WITH FRAME F-Main IN WINDOW C-Win.
   ENABLE btn-search i-filen-lw i-filen-pf l-folder btn-search-new btn-back 
-         i-folder i-filter l-filen btn-test f-text f-p i-text f-w f-r l-finded 
-         f-csv f-txt f-all t-info t-filen l-error-1 l-label-1 l-label-2 
+         i-folder i-filter l-filen f-p f-csv btn-test f-text f-w f-txt f-r 
+         f-all i-text l-finded t-info t-filen l-error-1 l-label-1 l-label-2 
          l-error-2 f-error-1 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
