@@ -36,7 +36,13 @@ CREATE WIDGET-POOL.
 
 /* Local Variable Definitions ---                                       */
 
-DEF VAR hf-new-path AS CHAR NO-UNDO INIT "".
+DEF VAR hf-new-path     AS CHAR NO-UNDO INIT "". // Triggers "btn-back, btn-search-new" procedur "get-filelist"
+DEF VAR hf-file-path-g  AS CHAR NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
+DEF VAR hf-ext-g        AS CHAR NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
+DEF VAR hf-file-name-g  AS CHAR NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
+DEF VAR hf-file-num     AS INT  NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
+DEF VAR hf-file-num-f   AS INT  NO-UNDO. // procedure "p-search-text"               
+DEF VAR hf-fertig       AS LOG  NO-UNDO INIT NO. // procedure "p-search-text, p-search-file-or-folder"
 
 DEF TEMP-TABLE tt-finded
    FIELD id AS INT
@@ -58,13 +64,13 @@ DEF TEMP-TABLE tt-finded
 &Scoped-define FRAME-NAME F-Main
 
 /* Standard List Definitions                                            */
-&Scoped-Define ENABLED-OBJECTS btn-search i-filen-lw i-filen-pf l-folder ~
-btn-search-new btn-back i-folder i-filter l-filen f-p f-csv btn-test f-text ~
-f-w f-txt f-r f-all i-text l-finded t-info t-filen l-error-1 l-label-1 ~
-l-label-2 l-error-2 f-error-1 
+&Scoped-Define ENABLED-OBJECTS progress-bar-1 btn-search i-filen-lw ~
+i-filen-pf l-folder btn-search-new btn-back i-folder i-filter l-filen f-p ~
+f-csv btn-test f-file-or-fold f-w f-txt f-r f-all i-text f-text l-finded ~
+t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 t-finded 
 &Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
-i-filter l-filen f-p f-csv f-text f-w f-txt f-r f-all i-text l-finded ~
-t-info l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 
+i-filter l-filen f-p f-csv f-file-or-fold f-w f-txt f-r f-all i-text f-text ~
+l-finded t-info l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 t-finded 
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
@@ -105,19 +111,19 @@ DEFINE VAR C-Win AS WIDGET-HANDLE NO-UNDO.
 /* Definitions of the field level widgets                               */
 DEFINE BUTTON btn-back 
      LABEL "Back" 
-     SIZE 9 BY .69.
+     SIZE 9 BY 1.
 
 DEFINE BUTTON btn-search 
      LABEL "OK" 
-     SIZE 7 BY 1.12.
+     SIZE 7 BY 1.15.
 
 DEFINE BUTTON btn-search-new 
      LABEL "Search" 
-     SIZE 9 BY .69.
+     SIZE 9 BY 1.
 
 DEFINE BUTTON btn-test 
      LABEL "TesT" 
-     SIZE 15 BY 1.12.
+     SIZE 7 BY 1.15.
 
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
@@ -131,7 +137,7 @@ DEFINE VARIABLE l-folder AS CHARACTER FORMAT "X(256)":U
 
 DEFINE VARIABLE l-finded AS CHARACTER 
      VIEW-AS EDITOR NO-WORD-WRAP SCROLLBAR-HORIZONTAL SCROLLBAR-VERTICAL
-     SIZE 76 BY 7 NO-UNDO.
+     SIZE 77.86 BY 7 NO-UNDO.
 
 DEFINE VARIABLE f-error-1 AS CHARACTER FORMAT "X(256)":U 
       VIEW-AS TEXT 
@@ -150,7 +156,7 @@ DEFINE VARIABLE i-filen-pf AS CHARACTER FORMAT "X(256)":U
 DEFINE VARIABLE i-text AS CHARACTER FORMAT "X(256)":U 
      LABEL "text" 
      VIEW-AS FILL-IN 
-     SIZE 14 BY 1 NO-UNDO.
+     SIZE 27 BY 1 NO-UNDO.
 
 DEFINE VARIABLE l-error-1 AS CHARACTER FORMAT "X(256)":U 
       VIEW-AS TEXT 
@@ -171,94 +177,118 @@ DEFINE VARIABLE l-label-2 AS CHARACTER FORMAT "X(256)":U INITIAL "List of File:"
 DEFINE VARIABLE t-filen AS CHARACTER FORMAT "X(256)":U 
      LABEL "Folder path" 
       VIEW-AS TEXT 
-     SIZE 54 BY .62 NO-UNDO.
+     SIZE 53.14 BY .62 NO-UNDO.
+
+DEFINE VARIABLE t-finded AS CHARACTER FORMAT "X(256)":U 
+      VIEW-AS TEXT 
+     SIZE 28.72 BY .62 NO-UNDO.
 
 DEFINE VARIABLE t-info AS CHARACTER FORMAT "X(256)":U 
       VIEW-AS TEXT 
      SIZE 47 BY 1
      FGCOLOR 12  NO-UNDO.
 
+DEFINE VARIABLE f-file-or-fold AS INTEGER INITIAL 1 
+     VIEW-AS RADIO-SET HORIZONTAL
+     RADIO-BUTTONS 
+          "File", 1,
+"Folder", 2
+     SIZE 21 BY .81 NO-UNDO.
+
 DEFINE VARIABLE f-text AS INTEGER INITIAL 2 
-     VIEW-AS RADIO-SET VERTICAL
+     VIEW-AS RADIO-SET HORIZONTAL
      RADIO-BUTTONS 
           "Equal", 1,
-"MAtch", 2
-     SIZE 9 BY 2.15 NO-UNDO.
+"Match", 2
+     SIZE 22 BY .81 NO-UNDO.
+
+DEFINE RECTANGLE progress-bar-1
+     EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
+     SIZE 28.86 BY 1.08.
+
+DEFINE RECTANGLE progress-bar-2
+     EDGE-PIXELS 2 GRAPHIC-EDGE    
+     SIZE .14 BY 1
+     BGCOLOR 10 FGCOLOR 10 .
 
 DEFINE VARIABLE f-all AS LOGICAL INITIAL yes 
      LABEL "all other" 
      VIEW-AS TOGGLE-BOX
-     SIZE 11.29 BY .69 NO-UNDO.
+     SIZE 11.14 BY .65 NO-UNDO.
 
 DEFINE VARIABLE f-csv AS LOGICAL INITIAL yes 
      LABEL ".csv" 
      VIEW-AS TOGGLE-BOX
-     SIZE 11.29 BY .69 NO-UNDO.
+     SIZE 11.14 BY .65 NO-UNDO.
 
 DEFINE VARIABLE f-p AS LOGICAL INITIAL yes 
      LABEL ".p" 
      VIEW-AS TOGGLE-BOX
-     SIZE 6 BY .69 NO-UNDO.
+     SIZE 6 BY .65 NO-UNDO.
 
 DEFINE VARIABLE f-r AS LOGICAL INITIAL yes 
      LABEL ".r" 
      VIEW-AS TOGGLE-BOX
-     SIZE 6 BY .69 NO-UNDO.
+     SIZE 6 BY .65 NO-UNDO.
 
 DEFINE VARIABLE f-txt AS LOGICAL INITIAL yes 
      LABEL ".txt" 
      VIEW-AS TOGGLE-BOX
-     SIZE 11.29 BY .69 NO-UNDO.
+     SIZE 11.14 BY .65 NO-UNDO.
 
 DEFINE VARIABLE f-w AS LOGICAL INITIAL yes 
      LABEL ".w" 
      VIEW-AS TOGGLE-BOX
-     SIZE 6 BY .69 NO-UNDO.
+     SIZE 6 BY .65 NO-UNDO.
 
 DEFINE VARIABLE i-filter AS LOGICAL INITIAL no 
      LABEL "Filter" 
      VIEW-AS TOGGLE-BOX
-     SIZE 11.29 BY .77 NO-UNDO.
+     SIZE 11.14 BY .77 NO-UNDO.
 
 DEFINE VARIABLE i-folder AS LOGICAL INITIAL yes 
      LABEL "Folder" 
      VIEW-AS TOGGLE-BOX
-     SIZE 11.29 BY .77 NO-UNDO.
+     SIZE 11.14 BY .77 NO-UNDO.
 
 
 /* ************************  Frame Definitions  *********************** */
 
 DEFINE FRAME F-Main
-     btn-search AT ROW 2.54 COL 66.43 WIDGET-ID 10
-     i-filen-lw AT ROW 2.62 COL 10 COLON-ALIGNED WIDGET-ID 2
+     btn-search AT ROW 2.54 COL 67.43 WIDGET-ID 10
+     i-filen-lw AT ROW 2.62 COL 10.86 COLON-ALIGNED WIDGET-ID 2
      i-filen-pf AT ROW 2.62 COL 14 COLON-ALIGNED NO-LABEL WIDGET-ID 4
      l-folder AT ROW 4.19 COL 13.57 NO-LABEL WIDGET-ID 12
-     btn-search-new AT ROW 4.23 COL 42 WIDGET-ID 38
-     btn-back AT ROW 4.23 COL 52 WIDGET-ID 40
+     btn-search-new AT ROW 4.19 COL 42 WIDGET-ID 38
+     btn-back AT ROW 4.19 COL 52 WIDGET-ID 40
      i-folder AT ROW 4.23 COL 66 WIDGET-ID 32
-     i-filter AT ROW 5.31 COL 66 WIDGET-ID 16
-     l-filen AT ROW 5.69 COL 13.57 NO-LABEL WIDGET-ID 18
-     f-p AT ROW 8.69 COL 4 WIDGET-ID 20
-     f-csv AT ROW 8.69 COL 10.86 WIDGET-ID 26
-     btn-test AT ROW 9.23 COL 51 WIDGET-ID 48
-     f-text AT ROW 9.35 COL 67 NO-LABEL WIDGET-ID 52
-     f-w AT ROW 9.5 COL 4 WIDGET-ID 22
-     f-txt AT ROW 9.5 COL 10.86 WIDGET-ID 28
-     f-r AT ROW 10.19 COL 4 WIDGET-ID 24
-     f-all AT ROW 10.31 COL 10.86 WIDGET-ID 30
-     i-text AT ROW 10.58 COL 49 COLON-ALIGNED WIDGET-ID 50
-     l-finded AT ROW 12.31 COL 1 NO-LABEL WIDGET-ID 56
-     t-info AT ROW 1.27 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
-     t-filen AT ROW 2.81 COL 10 COLON-ALIGNED WIDGET-ID 8
+     i-filter AT ROW 5.35 COL 66 WIDGET-ID 16
+     l-filen AT ROW 5.65 COL 13.57 NO-LABEL WIDGET-ID 18
+     f-p AT ROW 6.38 COL 56 WIDGET-ID 20
+     f-csv AT ROW 6.38 COL 63 WIDGET-ID 26
+     btn-test AT ROW 6.92 COL 7 WIDGET-ID 48
+     f-file-or-fold AT ROW 7.12 COL 16.43 NO-LABEL WIDGET-ID 58
+     f-w AT ROW 7.27 COL 56 WIDGET-ID 22
+     f-txt AT ROW 7.27 COL 63 WIDGET-ID 28
+     f-r AT ROW 8.15 COL 56 WIDGET-ID 24
+     f-all AT ROW 8.15 COL 63 WIDGET-ID 30
+     i-text AT ROW 8.27 COL 5 COLON-ALIGNED WIDGET-ID 50
+     f-text AT ROW 9.35 COL 7 NO-LABEL WIDGET-ID 52
+     l-finded AT ROW 12.23 COL 1.14 NO-LABEL WIDGET-ID 56
+     t-info AT ROW 1.31 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
+     t-filen AT ROW 2.81 COL 10.86 COLON-ALIGNED WIDGET-ID 8
      l-error-1 AT ROW 4.35 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 42
      l-label-1 AT ROW 4.38 COL 1 NO-LABEL WIDGET-ID 34
      l-label-2 AT ROW 5.85 COL 1 NO-LABEL WIDGET-ID 36
      l-error-2 AT ROW 5.85 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 44
-     f-error-1 AT ROW 11.04 COL 2 COLON-ALIGNED NO-LABEL WIDGET-ID 46
+     f-error-1 AT ROW 9 COL 54 COLON-ALIGNED NO-LABEL WIDGET-ID 46
+     t-finded AT ROW 10.96 COL 1.29 NO-LABEL WIDGET-ID 62
+     progress-bar-1 AT ROW 10.69 COL 31 WIDGET-ID 64
+     progress-bar-2 AT ROW 10.73 COL 31.14 WIDGET-ID 66
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COL 2.43 ROW 1.31
-         SIZE 77 BY 18.85 WIDGET-ID 100.
+         AT COL 2.4 ROW 1.33
+         SIZE 79.4 BY 18.86 WIDGET-ID 100.
 
 
 /* *********************** Procedure Settings ************************ */
@@ -279,11 +309,11 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
          HIDDEN             = YES
          TITLE              = "File Finder"
          HEIGHT             = 19.35
-         WIDTH              = 80
-         MAX-HEIGHT         = 39.12
-         MAX-WIDTH          = 274.29
-         VIRTUAL-HEIGHT     = 39.12
-         VIRTUAL-WIDTH      = 274.29
+         WIDTH              = 82
+         MAX-HEIGHT         = 39.15
+         MAX-WIDTH          = 274.14
+         VIRTUAL-HEIGHT     = 39.15
+         VIRTUAL-WIDTH      = 274.14
          RESIZE             = yes
          SCROLL-BARS        = no
          STATUS-AREA        = no
@@ -345,6 +375,8 @@ ASSIGN
        l-filen:HIDDEN IN FRAME F-Main           = TRUE.
 
 ASSIGN 
+       l-finded:AUTO-INDENT IN FRAME F-Main      = TRUE
+       l-finded:AUTO-RESIZE IN FRAME F-Main      = TRUE
        l-finded:READ-ONLY IN FRAME F-Main        = TRUE.
 
 /* SETTINGS FOR COMBO-BOX l-folder IN FRAME F-Main
@@ -362,11 +394,22 @@ ASSIGN
 ASSIGN 
        l-label-2:READ-ONLY IN FRAME F-Main        = TRUE.
 
+/* SETTINGS FOR RECTANGLE progress-bar-2 IN FRAME F-Main
+   NO-ENABLE                                                            */
+ASSIGN 
+       progress-bar-2:HIDDEN IN FRAME F-Main           = TRUE.
+
 /* SETTINGS FOR FILL-IN t-filen IN FRAME F-Main
    NO-DISPLAY                                                           */
 ASSIGN 
        t-filen:HIDDEN IN FRAME F-Main           = TRUE
        t-filen:READ-ONLY IN FRAME F-Main        = TRUE.
+
+/* SETTINGS FOR FILL-IN t-finded IN FRAME F-Main
+   ALIGN-L                                                              */
+ASSIGN 
+       t-finded:HIDDEN IN FRAME F-Main           = TRUE
+       t-finded:READ-ONLY IN FRAME F-Main        = TRUE.
 
 ASSIGN 
        t-info:HIDDEN IN FRAME F-Main           = TRUE
@@ -534,7 +577,7 @@ END.
 ON CHOOSE OF btn-test IN FRAME F-Main /* TesT */
 DO:
    IF i-text:SCREEN-VALUE <> "" THEN
-      RUN p-search-text.
+      RUN p-search-file-or-folder.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -819,6 +862,19 @@ END.
 &ANALYZE-RESUME
 
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL t-filen C-Win
+ON MOUSE-SELECT-DBLCLICK OF t-filen IN FRAME F-Main /* Folder path */
+DO:
+  SELF:HIDDEN = TRUE.
+  i-filen-lw:HIDDEN = FALSE.
+  i-filen-pf:HIDDEN = FALSE.
+  RUN get-dirname.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &UNDEFINE SELF-NAME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _MAIN-BLOCK C-Win 
@@ -857,6 +913,7 @@ MAIN-BLOCK:
 DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
    ON END-KEY UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK:
       RUN enable_UI.
+      
       ASSIGN 
          t-filen:HIDDEN = TRUE
          l-filen:HIDDEN = TRUE
@@ -874,7 +931,9 @@ DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
          l-error-1:HIDDEN = TRUE
          l-error-2:HIDDEN = TRUE
          f-error-1:HIDDEN = TRUE
-         t-info:HIDDEN = TRUE.
+         t-info:HIDDEN = TRUE
+         progress-bar-1:HIDDEN = TRUE
+         progress-bar-2:HIDDEN = TRUE.
      
      
      
@@ -919,13 +978,13 @@ PROCEDURE enable_UI :
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
   DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-p f-csv 
-          f-text f-w f-txt f-r f-all i-text l-finded t-info l-error-1 l-label-1 
-          l-label-2 l-error-2 f-error-1 
+          f-file-or-fold f-w f-txt f-r f-all i-text f-text l-finded t-info 
+          l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
-  ENABLE btn-search i-filen-lw i-filen-pf l-folder btn-search-new btn-back 
-         i-folder i-filter l-filen f-p f-csv btn-test f-text f-w f-txt f-r 
-         f-all i-text l-finded t-info t-filen l-error-1 l-label-1 l-label-2 
-         l-error-2 f-error-1 
+  ENABLE progress-bar-1 btn-search i-filen-lw i-filen-pf l-folder 
+         btn-search-new btn-back i-folder i-filter l-filen f-p f-csv btn-test 
+         f-file-or-fold f-w f-txt f-r f-all i-text f-text l-finded t-info 
+         t-filen l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
   VIEW C-Win.
@@ -1244,10 +1303,10 @@ PROCEDURE p-file-to-table :
 DO WITH FRAME {&FRAME-NAME}:
    DEF VAR hf-i AS INT NO-UNDO INIT 0.
    DEF VAR hf-file-path AS CHAR NO-UNDO.
-   EMPTY TEMP-TABLE tt-finded NO-ERROR.
+   EMPTY TEMP-TABLE tt-finded NO-ERROR. // reset the table if we have
    
-   ASSIGN hf-file-path = t-filen:SCREEN-VALUE + "~\" + l-filen:SCREEN-VALUE.
-   INPUT FROM VALUE(hf-file-path).
+   //ASSIGN hf-file-path = t-filen:SCREEN-VALUE + "~\" + l-filen:SCREEN-VALUE.
+   INPUT FROM VALUE(hf-file-path-g).
    REPEAT TRANSACTION:
       CREATE tt-finded.
       ASSIGN   
@@ -1255,7 +1314,62 @@ DO WITH FRAME {&FRAME-NAME}:
          tt-finded.id = hf-i.
       IMPORT DELIMITER "~n" tt-finded.txt.
    END.
-   OUTPUT CLOSE.        
+   OUTPUT CLOSE. 
+END.
+END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-search-file-or-folder C-Win 
+PROCEDURE p-search-file-or-folder :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+
+DO WITH FRAME {&FRAME-NAME}:
+   DEF VAR hf-file-path  AS CHAR NO-UNDO. 
+   DEF VAR iNumEntries   AS INT  NO-UNDO.      
+   DEF VAR iLoop         AS INT  NO-UNDO.
+   ASSIGN
+      hf-file-num = 0
+      hf-file-num-f = 0
+      l-finded:SCREEN-VALUE = ""
+      progress-bar-1:HIDDEN = FALSE.
+      
+   IF f-file-or-fold:SCREEN-VALUE = "1"  THEN DO:  // 1 => File 2 => folder    
+      ASSIGN
+         hf-ext-g = DYNAMIC-FUNCTION('f-get-ext':U,l-filen:SCREEN-VALUE )
+         hf-file-path-g = t-filen:SCREEN-VALUE + "~\" + l-filen:SCREEN-VALUE
+         hf-file-name-g = l-filen:SCREEN-VALUE.         
+      RUN p-search-text.   
+    END.
+    ELSE DO:
+      SESSION:SET-WAIT-STATE("no":U).
+      ASSIGN
+         hf-file-path = l-filen:LIST-ITEMS
+         iNumEntries = NUM-ENTRIES(hf-file-path,",")
+         hf-file-num = iNumEntries.
+         
+      DO iLoop = 1 TO iNumEntries:
+         IF iLoop = iNumEntries THEN DO:
+            SESSION:SET-WAIT-STATE("").
+         END.
+         ASSIGN
+            progress-bar-2:HIDDEN = FALSE
+            progress-bar-2:WIDTH-PIXELS = ((iLoop / iNumEntries) * 100) * 2
+            progress-bar-2:FILLED = TRUE
+            progress-bar-2:BGCOLOR = 10
+            t-finded:SCREEN-VALUE = STRING(iLoop) + "/" + STRING(iNumEntries) + " -- " + STRING( ROUND((iLoop / iNumEntries) * 100, 0 )) + "%" 
+            hf-file-name-g = ENTRY(iLoop,hf-file-path,",")
+            hf-file-path-g = t-filen:SCREEN-VALUE + "~\" + ENTRY(iLoop,hf-file-path,",")
+            hf-ext-g = DYNAMIC-FUNCTION('f-get-ext':U,hf-file-path-g ).
+         RUN p-search-text.   
+      END.
+    END.
+      
 END.
 END PROCEDURE.
 
@@ -1269,34 +1383,32 @@ PROCEDURE p-search-text :
   Parameters:  <none>
   Notes:       
 ------------------------------------------------------------------------------*/
-
 DO WITH FRAME {&FRAME-NAME}:
-    DEF VAR hf-start      AS LOG      NO-UNDO INIT NO.
-    DEF VAR hf-find       AS LOG      NO-UNDO INIT NO.
-    DEF VAR hf-i          AS INT      NO-UNDO.
-    DEF VAR hf-l          AS INT      NO-UNDO.
-    DEF VAR hf-text       AS LONGCHAR NO-UNDO.
-    DEF VAR hf-char       AS CHAR     NO-UNDO.
-    DEF VAR hf-word       AS CHAR     NO-UNDO.
-    DEF VAR hf-word-l     AS CHAR     NO-UNDO.
-    DEF VAR hf-ext        AS CHAR     NO-UNDO.
-    DEF VAR hf-file-path  AS CHAR     NO-UNDO.
-    ASSIGN
-       hf-l = 1
-       hf-text = ""
-       hf-word = ""
-       hf-word-l = ""
-       hf-ext = DYNAMIC-FUNCTION('f-get-ext':U,l-filen:SCREEN-VALUE )
-       hf-file-path = t-filen:SCREEN-VALUE + "~\" + l-filen:SCREEN-VALUE
-       l-finded:SCREEN-VALUE = "".
-    RUN p-file-to-table.
-    IF hf-ext <> "p" AND  hf-ext <> "w" AND  hf-ext <> "r" THEN
-        COPY-LOB FILE (hf-file-path) TO hf-text CONVERT SOURCE CODEPAGE "utf-8".
-    ELSE
-        COPY-LOB FILE (hf-file-path) TO hf-text CONVERT SOURCE CODEPAGE "iso8859-1".
+   
+   DEF VAR hf-start      AS LOG      NO-UNDO INIT NO.
+   DEF VAR hf-file-start AS LOG      NO-UNDO INIT YES.
+   DEF VAR hf-i          AS INT      NO-UNDO.
+   DEF VAR hf-line       AS INT      NO-UNDO.
+   DEF VAR hf-text       AS LONGCHAR NO-UNDO.
+   DEF VAR hf-char       AS CHAR     NO-UNDO.
+   DEF VAR hf-word       AS CHAR     NO-UNDO.
+   DEF VAR hf-word-line  AS CHAR     NO-UNDO.
+   
+   ASSIGN
+      hf-line = 1
+      hf-text = ""
+      hf-word = ""
+      hf-word-line = "".    
+      
+   RUN p-file-to-table.
+   IF hf-ext-g <> "p" AND  hf-ext-g <> "w" AND  hf-ext-g <> "r" THEN
+     COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "utf-8" NO-ERROR.
+   ELSE
+     COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "iso8859-1" NO-ERROR.
 
    DO hf-i = 1 TO LENGTH(hf-text):
-      ASSIGN hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
+      ASSIGN 
+         hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
        // Charachter counter
       IF hf-start = NO AND  hf-char <> " "  THEN DO:  // first char of word
          ASSIGN
@@ -1312,33 +1424,53 @@ DO WITH FRAME {&FRAME-NAME}:
             hf-start = NO.
       END.
       IF hf-char <> "~n" THEN 
-         ASSIGN hf-word-l = hf-word-l + hf-char.
+         ASSIGN hf-word-line = hf-word-line + hf-char.
       ELSE
          ASSIGN 
-            hf-l = hf-l  + 1
-            hf-word-l = "".   
+            hf-line = hf-line  + 1
+            hf-word-line = "".   
       IF hf-char = "~n" OR hf-char = " " THEN DO: // Line counter 
-      
          IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "1" AND hf-word = i-text:SCREEN-VALUE THEN DO:  
-               ASSIGN 
-                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "~n". 
-                  FOR EACH tt-finded WHERE tt-finded.id = hf-l NO-LOCK:
-                     l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(tt-finded.id) + "=> " + tt-finded.txt + "~n".   
-                  END. 
-                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "---------------------Next line---------------------~n".
+            IF hf-file-start THEN DO: 
+               ASSIGN
+                  hf-file-start = NO 
+                  hf-file-num-f = hf-file-num-f + 1
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "File Name: " + hf-file-name-g + "~n"
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "************************************~n".
+            END.
+            ASSIGN
+               l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "  Nø: " + STRING(hf-file-num-f) + "~n". 
+               FOR EACH tt-finded WHERE tt-finded.id = hf-line NO-LOCK:
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(tt-finded.id) + "=> " + tt-finded.txt + "~n".   
+               END. 
+               l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "-----------------------------------------~n".
+            ASSIGN hf-word = "". 
+               
          END.
          ELSE IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "2" AND hf-word MATCHES ( "*" + i-text:SCREEN-VALUE + "*") THEN DO: 
+            // MESSAGE "File: " hf-file-path-g SKIP hf-file-name-g SKIP hf-ext-g VIEW-AS ALERT-BOX. 
+            IF hf-file-start THEN DO: 
                ASSIGN 
-                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "~n". 
-                  FOR EACH tt-finded WHERE tt-finded.id = hf-l NO-LOCK:
-                     l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(tt-finded.id) + "=> " + tt-finded.txt + "~n".   
-                  END.
-                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "---------------------Next line---------------------~n".
-         END. 
+                  hf-file-start = NO      
+                  hf-file-num-f = hf-file-num-f + 1.
+               l-finded:INSERT-STRING("File Name: " + hf-file-name-g + "  Nø: " + STRING(hf-file-num-f) + "~n").
+               l-finded:INSERT-STRING( "************************************~n").
+            END.
+            l-finded:INSERT-STRING( "Word: " + hf-word + "~n"). 
+            FOR EACH tt-finded WHERE tt-finded.id = hf-line NO-LOCK:
+               l-finded:INSERT-STRING( STRING(tt-finded.id) + "=> " + tt-finded.txt + "~n" ).   
+            END.
+            l-finded:INSERT-STRING( "-----------------------------------------~n").                
+         END.           
          ASSIGN hf-word = "". 
       END.
-   END.  
+   END.
 END.
+/* IF iLoop = hf-file-num THEN                                                                              */
+/*    ASSIGN                                                                                                */
+/*       l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "--------------- Fertig ---------------"           */
+/*       l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(hf-file-num-f) + "/" + STRING(hf-file-num). */
+      
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
