@@ -290,7 +290,7 @@ DEFINE FRAME F-Main
      l-label-2 AT ROW 5.85 COL 1 NO-LABEL WIDGET-ID 36
      l-error-2 AT ROW 5.85 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 44
      f-error-1 AT ROW 9 COL 54 COLON-ALIGNED NO-LABEL WIDGET-ID 46
-     t-finded AT ROW 10.96 COL 1.29 NO-LABEL WIDGET-ID 62
+     t-finded AT ROW 10.88 COL 1.29 NO-LABEL WIDGET-ID 62
      progress-bar-1 AT ROW 10.69 COL 31 WIDGET-ID 64
      progress-bar-2 AT ROW 10.73 COL 31.14 WIDGET-ID 66
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
@@ -1408,7 +1408,7 @@ DO WITH FRAME {&FRAME-NAME}:
             t-finded:SCREEN-VALUE = STRING(iLoop) + "/" + STRING(iNumEntries) + " -- " + STRING( ROUND((iLoop / iNumEntries) * 100, 0 )) + "%" 
             hf-file-name-g = ENTRY(iLoop,hf-file-path,",")
             hf-file-path-g = t-filen:SCREEN-VALUE + "~\" + ENTRY(iLoop,hf-file-path,",")
-            hf-ext-g = DYNAMIC-FUNCTION('f-get-ext':U,hf-file-path-g ).
+            hf-ext-g = DYNAMIC-FUNCTION('f-get-ext':U,hf-file-path-g ).  
          RUN p-search-text.   
       END.
     END.
@@ -1543,11 +1543,7 @@ PROCEDURE p-to-html :
    DEF VAR p-script-json AS CHAR NO-UNDO.
    
    ASSIGN save-path = "C:~\temp~\tableau-fichier.html".
-   
-/*    //FILE-INFO:FILE-NAME = save-path. */
-/*    //IF FILE-INFO:FILE-SIZE > 1 THEN  */
-/*    OS-DELETE VALUE(save-path).        */
-/*    PAUSE 2 NO-MESSAGE.                */
+
    OUTPUT TO VALUE(save-path) CONVERT SOURCE "ISO8859-1" TARGET "UTF-8". 
    
 
@@ -1678,8 +1674,14 @@ PROCEDURE p-to-html :
    PUT UNFORMATTED "</html>~n".
 
    OUTPUT CLOSE.
-
-
+   DO WITH FRAME {&FRAME-NAME}:
+      ASSIGN
+         t-finded:FONT = 7
+         t-finded:COLUMN = 42
+         t-finded:WIDTH-PIXELS = 40
+         t-finded:BGCOLOR = 10
+         t-finded:SCREEN-VALUE = "FERTIG".
+   END.   
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
