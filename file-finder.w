@@ -44,10 +44,17 @@ DEF VAR hf-file-num     AS INT  NO-UNDO. // procedure "p-search-text, p-search-f
 DEF VAR hf-file-num-f   AS INT  NO-UNDO. // procedure "p-search-text"               
 DEF VAR hf-fertig       AS LOG  NO-UNDO INIT NO. // procedure "p-search-text, p-search-file-or-folder"
 
-DEF TEMP-TABLE tt-finded
+DEF TEMP-TABLE tt-file-line
    FIELD id AS INT
    FIELD txt AS CHAR
    INDEX id IS PRIMARY UNIQUE id.
+   
+DEF TEMP-TABLE tt-gefunden
+   FIELD datei-path AS CHAR
+   FIELD datei-name AS CHAR
+   FIELD wort AS CHAR
+   FIELD linie AS CHAR
+   FIELD linie-num AS INT.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -66,8 +73,9 @@ DEF TEMP-TABLE tt-finded
 /* Standard List Definitions                                            */
 &Scoped-Define ENABLED-OBJECTS progress-bar-1 btn-search i-filen-lw ~
 i-filen-pf l-folder btn-search-new btn-back i-folder i-filter l-filen f-p ~
-f-csv btn-test f-file-or-fold f-w f-txt f-r f-all i-text f-text l-finded ~
-t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 t-finded 
+f-csv btn-search-text f-file-or-fold f-w f-txt f-r f-all i-text f-text ~
+l-finded t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 ~
+t-finded 
 &Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
 i-filter l-filen f-p f-csv f-file-or-fold f-w f-txt f-r f-all i-text f-text ~
 l-finded t-info l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 t-finded 
@@ -121,8 +129,8 @@ DEFINE BUTTON btn-search-new
      LABEL "Search" 
      SIZE 9 BY 1.
 
-DEFINE BUTTON btn-test 
-     LABEL "TesT" 
+DEFINE BUTTON btn-search-text 
+     LABEL "Suche" 
      SIZE 7 BY 1.15.
 
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
@@ -191,14 +199,14 @@ DEFINE VARIABLE t-info AS CHARACTER FORMAT "X(256)":U
 DEFINE VARIABLE f-file-or-fold AS INTEGER INITIAL 1 
      VIEW-AS RADIO-SET HORIZONTAL
      RADIO-BUTTONS 
-          "File", 1,
-"Folder", 2
+          "Datei", 1,
+"Ordner", 2
      SIZE 21 BY .81 NO-UNDO.
 
 DEFINE VARIABLE f-text AS INTEGER INITIAL 2 
      VIEW-AS RADIO-SET HORIZONTAL
      RADIO-BUTTONS 
-          "Equal", 1,
+          "Gleiches", 1,
 "Match", 2
      SIZE 22 BY .81 NO-UNDO.
 
@@ -247,7 +255,7 @@ DEFINE VARIABLE i-filter AS LOGICAL INITIAL no
      SIZE 11.14 BY .77 NO-UNDO.
 
 DEFINE VARIABLE i-folder AS LOGICAL INITIAL yes 
-     LABEL "Folder" 
+     LABEL "Ordner" 
      VIEW-AS TOGGLE-BOX
      SIZE 11.14 BY .77 NO-UNDO.
 
@@ -266,7 +274,7 @@ DEFINE FRAME F-Main
      l-filen AT ROW 5.65 COL 13.57 NO-LABEL WIDGET-ID 18
      f-p AT ROW 6.38 COL 56 WIDGET-ID 20
      f-csv AT ROW 6.38 COL 63 WIDGET-ID 26
-     btn-test AT ROW 6.92 COL 7 WIDGET-ID 48
+     btn-search-text AT ROW 6.92 COL 7 WIDGET-ID 48
      f-file-or-fold AT ROW 7.12 COL 16.43 NO-LABEL WIDGET-ID 58
      f-w AT ROW 7.27 COL 56 WIDGET-ID 22
      f-txt AT ROW 7.27 COL 63 WIDGET-ID 28
@@ -287,8 +295,8 @@ DEFINE FRAME F-Main
      progress-bar-2 AT ROW 10.73 COL 31.14 WIDGET-ID 66
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
-         AT COL 2.4 ROW 1.33
-         SIZE 79.4 BY 18.86 WIDGET-ID 100.
+         AT COL 2.43 ROW 1.35
+         SIZE 79.43 BY 18.88 WIDGET-ID 100.
 
 
 /* *********************** Procedure Settings ************************ */
@@ -308,7 +316,7 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
   CREATE WINDOW C-Win ASSIGN
          HIDDEN             = YES
          TITLE              = "File Finder"
-         HEIGHT             = 19.35
+         HEIGHT             = 19
          WIDTH              = 82
          MAX-HEIGHT         = 39.15
          MAX-WIDTH          = 274.14
@@ -468,7 +476,7 @@ END.
 ON GO OF FRAME F-Main
 DO:
    APPLY "CLOSE":U TO THIS-PROCEDURE.
-   RETURN NO-APPLY.  
+   RETURN NO-APPLY. 
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -572,9 +580,9 @@ END.
 &ANALYZE-RESUME
 
 
-&Scoped-define SELF-NAME btn-test
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-test C-Win
-ON CHOOSE OF btn-test IN FRAME F-Main /* TesT */
+&Scoped-define SELF-NAME btn-search-text
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search-text C-Win
+ON CHOOSE OF btn-search-text IN FRAME F-Main /* Suche */
 DO:
    IF i-text:SCREEN-VALUE <> "" THEN
       RUN p-search-file-or-folder.
@@ -821,7 +829,7 @@ END.
 
 &Scoped-define SELF-NAME i-folder
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-folder C-Win
-ON VALUE-CHANGED OF i-folder IN FRAME F-Main /* Folder */
+ON VALUE-CHANGED OF i-folder IN FRAME F-Main /* Ordner */
 DO:
    IF SELF:SCREEN-VALUE = "NO" THEN DO:
       ASSIGN
@@ -931,9 +939,17 @@ DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
          l-error-1:HIDDEN = TRUE
          l-error-2:HIDDEN = TRUE
          f-error-1:HIDDEN = TRUE
-         t-info:HIDDEN = TRUE
+         t-info:HIDDEN = TRUE 
+         btn-search-text:HIDDEN = TRUE
+         f-file-or-fold:HIDDEN = TRUE
+         i-text:HIDDEN = TRUE
+         f-text:HIDDEN = TRUE
+         l-finded:HIDDEN = TRUE
          progress-bar-1:HIDDEN = TRUE
          progress-bar-2:HIDDEN = TRUE.
+      
+      ASSIGN   
+         {&WINDOW-NAME}:HEIGHT-PIXEL = 94.   
      
      
      
@@ -982,9 +998,10 @@ PROCEDURE enable_UI :
           l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
   ENABLE progress-bar-1 btn-search i-filen-lw i-filen-pf l-folder 
-         btn-search-new btn-back i-folder i-filter l-filen f-p f-csv btn-test 
-         f-file-or-fold f-w f-txt f-r f-all i-text f-text l-finded t-info 
-         t-filen l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 t-finded 
+         btn-search-new btn-back i-folder i-filter l-filen f-p f-csv 
+         btn-search-text f-file-or-fold f-w f-txt f-r f-all i-text f-text 
+         l-finded t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 
+         f-error-1 t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
   VIEW C-Win.
@@ -1147,7 +1164,15 @@ DO WITH FRAME {&FRAME-NAME}:
          t-info:HIDDEN = FALSE
          t-info:SCREEN-VALUE = "Select folder first".  
    END.
-
+   ASSIGN
+      btn-search-text:HIDDEN = FALSE
+      f-file-or-fold:HIDDEN = FALSE
+      i-text:HIDDEN = FALSE
+      f-text:HIDDEN = FALSE
+      l-finded:HIDDEN = FALSE.
+   
+      ASSIGN   
+         {&WINDOW-NAME}:HEIGHT-PIXELS = 491.    
 END.
 END PROCEDURE.
 
@@ -1292,6 +1317,24 @@ END PROCEDURE.
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-diplay-tt C-Win 
+PROCEDURE p-diplay-tt :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+//DO WITH FRAME {&FRAME-NAME}:
+//END.
+
+//WAIT-FOR PROCEDURE-COMPLETE OF p-search-file-or-folder.
+
+
+END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-file-to-table C-Win 
 PROCEDURE p-file-to-table :
 /*------------------------------------------------------------------------------
@@ -1303,16 +1346,16 @@ PROCEDURE p-file-to-table :
 DO WITH FRAME {&FRAME-NAME}:
    DEF VAR hf-i AS INT NO-UNDO INIT 0.
    DEF VAR hf-file-path AS CHAR NO-UNDO.
-   EMPTY TEMP-TABLE tt-finded NO-ERROR. // reset the table if we have
+   EMPTY TEMP-TABLE tt-file-line NO-ERROR. // reset the table if we have
    
    //ASSIGN hf-file-path = t-filen:SCREEN-VALUE + "~\" + l-filen:SCREEN-VALUE.
    INPUT FROM VALUE(hf-file-path-g).
    REPEAT TRANSACTION:
-      CREATE tt-finded.
+      CREATE tt-file-line.
       ASSIGN   
          hf-i = hf-i + 1
-         tt-finded.id = hf-i.
-      IMPORT DELIMITER "~n" tt-finded.txt.
+         tt-file-line.id = hf-i.
+      IMPORT DELIMITER "~n" tt-file-line.txt.
    END.
    OUTPUT CLOSE. 
 END.
@@ -1371,6 +1414,8 @@ DO WITH FRAME {&FRAME-NAME}:
     END.
       
 END.
+RUN p-to-html.
+EMPTY TEMP-TABLE tt-gefunden NO-ERROR. // reset the table if we have
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1393,7 +1438,6 @@ DO WITH FRAME {&FRAME-NAME}:
    DEF VAR hf-char       AS CHAR     NO-UNDO.
    DEF VAR hf-word       AS CHAR     NO-UNDO.
    DEF VAR hf-word-line  AS CHAR     NO-UNDO.
-   
    ASSIGN
       hf-line = 1
       hf-text = ""
@@ -1440,8 +1484,8 @@ DO WITH FRAME {&FRAME-NAME}:
             END.
             ASSIGN
                l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "  Nø: " + STRING(hf-file-num-f) + "~n". 
-               FOR EACH tt-finded WHERE tt-finded.id = hf-line NO-LOCK:
-                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(tt-finded.id) + "=> " + tt-finded.txt + "~n".   
+               FOR EACH tt-file-line WHERE tt-file-line.id = hf-line NO-LOCK:
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(tt-file-line.id) + "=> " + tt-file-line.txt + "~n".   
                END. 
                l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "-----------------------------------------~n".
             ASSIGN hf-word = "". 
@@ -1457,20 +1501,185 @@ DO WITH FRAME {&FRAME-NAME}:
                l-finded:INSERT-STRING( "************************************~n").
             END.
             l-finded:INSERT-STRING( "Word: " + hf-word + "~n"). 
-            FOR EACH tt-finded WHERE tt-finded.id = hf-line NO-LOCK:
-               l-finded:INSERT-STRING( STRING(tt-finded.id) + "=> " + tt-finded.txt + "~n" ).   
+            FIND FIRST tt-file-line WHERE tt-file-line.id = hf-line NO-LOCK NO-ERROR.
+            IF AVAILABLE tt-file-line THEN DO:
+               CREATE tt-gefunden.
+               ASSIGN
+                  tt-gefunden.datei-path = hf-file-path-g    
+                  tt-gefunden.datei-name = hf-file-name-g
+                  tt-gefunden.wort  = TRIM(hf-word, ",.;:!? ~"~ '[]()")
+                  tt-gefunden.linie-num  = tt-file-line.id    
+                  tt-gefunden.linie = tt-file-line.txt. 
+               l-finded:INSERT-STRING( STRING(tt-file-line.id) + "=> " + tt-file-line.txt + "~n" ).    
             END.
             l-finded:INSERT-STRING( "-----------------------------------------~n").                
          END.           
          ASSIGN hf-word = "". 
       END.
    END.
-END.
+END.   
 /* IF iLoop = hf-file-num THEN                                                                              */
 /*    ASSIGN                                                                                                */
 /*       l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "--------------- Fertig ---------------"           */
 /*       l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(hf-file-num-f) + "/" + STRING(hf-file-num). */
       
+END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-to-html C-Win 
+PROCEDURE p-to-html :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/ 
+   DEF VAR file-handle AS HANDLE NO-UNDO.
+   DEF VAR i AS INT NO-UNDO.
+   DEF VAR p-head AS CHAR NO-UNDO.
+   DEF VAR p-script AS CHAR NO-UNDO.
+   DEF VAR save-path AS CHAR NO-UNDO.
+   DEF VAR p-script-json AS CHAR NO-UNDO.
+   
+   ASSIGN save-path = "C:~\temp~\tableau-fichier.html".
+   
+/*    //FILE-INFO:FILE-NAME = save-path. */
+/*    //IF FILE-INFO:FILE-SIZE > 1 THEN  */
+/*    OS-DELETE VALUE(save-path).        */
+/*    PAUSE 2 NO-MESSAGE.                */
+   OUTPUT TO VALUE(save-path) CONVERT SOURCE "ISO8859-1" TARGET "UTF-8". 
+   
+
+   ASSIGN p-head = "<!DOCTYPE html>~n
+<html lang=~"de~">~n
+   <head>~n
+      <meta charset=~"utf-8~">
+      <title>Tableau</title>~n
+      <style>~n
+         table ~{~n
+                  border-collapse: collapse; ~n
+                  width: 100%;~n
+         ~}~n
+         th, td ~{~n
+            text-align: left;~n
+            padding: 8px;~n
+         ~}~n
+         tr:nth-child(even) ~{ ~n
+            background-color: #f2f2f2;~n
+         ~}~n
+         th ~{ ~n
+            background-color: #4CAF50;~n
+            color: white;~n
+         ~} ~n           
+         .group-header ~{~n
+           cursor: pointer;~n
+           font-weight: bold;~n
+         ~}~n
+      </style>~n
+   </head> ~n
+   <body>~n".
+   
+
+   ASSIGN p-script = "<script>~n
+   const table = document.querySelector('table');~n
+   const rows = Array.from(table.querySelectorAll('tr'));~n
+
+   // Ajouter une classe … la premiŠre cellule de chaque groupe avec le mˆme Path~n
+   let currentPath = null;~n
+   rows.forEach(row => ~{~n
+     const pathCell = row.querySelector('#d-path');~n
+     if (pathCell) ~{~n
+       const path = pathCell.textContent;~n
+       if (path !== currentPath) ~{~n
+         currentPath = path;~n
+         row.classList.add('group-header'); ~n
+       ~}  ~n
+     ~}  ~n
+   ~}); ~n
+
+   // Masquer les cellules suivantes de chaque groupe ~n
+   const groupHeaders = table.querySelectorAll('.group-header');~n
+   groupHeaders.forEach(header => ~{~n
+     const groupRows = []; ~n
+     let next = header.nextElementSibling; ~n
+     while (next && !next.classList.contains('group-header')) ~{~n
+       groupRows.push(next);~n
+       next = next.nextElementSibling; ~n
+     ~}   ~n
+     groupRows.forEach(row => ~{ ~n
+       const cells = row.querySelectorAll('td');~n
+       for (let i = 1; i < cells.length; i++) ~{ ~n
+         cells[i].style.display = 'none'; ~n
+       ~} ~n
+     ~});~n
+   ~}); ~n
+
+   // Ajouter un ‚v‚nement ~"click~" pour afficher/masquer les cellules cach‚es  ~n
+   groupHeaders.forEach(header => ~{  ~n
+     header.addEventListener('click', () => ~{~n
+       const groupRows = [];~n
+       let next = header.nextElementSibling; ~n
+       while (next && !next.classList.contains('group-header')) ~{ ~n
+         groupRows.push(next);~n
+         next = next.nextElementSibling;~n
+       ~}                ~n
+       groupRows.forEach(row => ~{ ~n
+         const cells = row.querySelectorAll('td');~n
+         for (let i = 1; i < cells.length; i++) ~{ ~n
+           cells[i].style.display = cells[i].style.display === 'none' ? '' : 'none'; ~n
+         ~} ~n
+       ~}); ~n
+     ~}); ~n
+   ~});  ~n
+</script>~n".
+   
+   
+   
+   
+/*    PUT UNFORMATTED "<html>~n".                 */
+/*    PUT UNFORMATTED "<head>~n".                 */
+/*    PUT UNFORMATTED "<title>Tableau</title>~n". */
+/*    PUT UNFORMATTED "</head>~n".                */
+/*    PUT UNFORMATTED "<body>~n".                 */
+   
+   PUT UNFORMATTED p-head.
+   PUT UNFORMATTED "<table>~n".
+   PUT UNFORMATTED "<tr>~n<th>Path</th>~n<th>Name</th>~n<th>Wort</th>~n<th>L Nø</th>~n<th>Linie</th>~n</tr>~n".
+
+  FOR EACH tt-gefunden :
+       PUT UNFORMATTED "<tr>~n".
+       PUT UNFORMATTED "<td id= ~"d-path~">" tt-gefunden.datei-path "</td>~n".
+       PUT UNFORMATTED "<td>" tt-gefunden.datei-name "</td>~n".
+       PUT UNFORMATTED "<td>" tt-gefunden.wort "</td>~n".
+       PUT UNFORMATTED "<td>" tt-gefunden.linie-num "</td>~n".
+       PUT UNFORMATTED "<td>" tt-gefunden.linie "</td>~n".
+       PUT UNFORMATTED "</tr>~n".
+   END.
+
+   PUT UNFORMATTED "</table>~n".
+   //PUT UNFORMATTED p-script.
+   
+   PUT UNFORMATTED "<script>~n".
+   PUT UNFORMATTED "const data = [~n".
+   FOR EACH tt-gefunden :
+       PUT UNFORMATTED "~{~n".
+       PUT UNFORMATTED "~"path~" : ~"" tt-gefunden.datei-path "~",~n".
+       PUT UNFORMATTED "~"name~" : ~"" tt-gefunden.datei-name "~",~n".
+       PUT UNFORMATTED "~"wort~" : ~"" tt-gefunden.wort "~",~n".
+       PUT UNFORMATTED "~"l-num~" : " tt-gefunden.linie-num ",~n".
+       PUT UNFORMATTED "~"linie~" : `" tt-gefunden.linie "`~n".
+       PUT UNFORMATTED "~},~n".
+   END.    
+   PUT UNFORMATTED "];~n".
+   PUT UNFORMATTED "</script>~n". 
+
+   PUT UNFORMATTED "</body>~n".
+   PUT UNFORMATTED "</html>~n".
+
+   OUTPUT CLOSE.
+
+
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
