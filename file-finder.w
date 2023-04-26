@@ -126,15 +126,17 @@ DEFINE VAR C-Win AS WIDGET-HANDLE NO-UNDO.
 
 /* Menu Definitions                                                     */
 DEFINE SUB-MENU m_Datei 
+       MENU-ITEM m_Select_Ordner LABEL "&Select Ordner"
        MENU-ITEM m_Schliessen   LABEL "&Schlieáen"    .
 
 DEFINE SUB-MENU m_Hilfe 
-       MENU-ITEM m_Inhalt       LABEL "&Inhalt"       
-       MENU-ITEM m_Berechtigung LABEL "&Berechtigung" .
+       MENU-ITEM m_Readme       LABEL "&Readme"       
+       RULE
+       MENU-ITEM m_Autor        LABEL "&Autor"        .
 
 DEFINE MENU MENU-BAR-W-Win MENUBAR
        SUB-MENU  m_Datei        LABEL "&Datei"        
-       SUB-MENU  m_Hilfe        LABEL "&Hilfe"        .
+       SUB-MENU  m_Hilfe        LABEL "&?"            .
 
 
 /* Definitions of the field level widgets                               */
@@ -363,7 +365,7 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
          SENSITIVE          = yes.
 ELSE {&WINDOW-NAME} = CURRENT-WINDOW.
 
-ASSIGN {&WINDOW-NAME}:MENUBAR = MENU MENU-BAR-W-Win:HANDLE.
+ASSIGN {&WINDOW-NAME}:MENUBAR    = MENU MENU-BAR-W-Win:HANDLE.
 /* END WINDOW DEFINITION                                                */
 &ANALYZE-RESUME
 
@@ -939,6 +941,30 @@ END.
 &ANALYZE-RESUME
 
 
+&Scoped-define SELF-NAME m_Autor
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Autor C-Win
+ON CHOOSE OF MENU-ITEM m_Autor /* Autor */
+DO:
+   MESSAGE "WKO Inhouse GmbH" SKIP
+           "Wien-2023" 
+         VIEW-AS ALERT-BOX TITLE "File Finder".
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME m_Readme
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Readme C-Win
+ON CHOOSE OF MENU-ITEM m_Readme /* Readme */
+DO:
+   OS-COMMAND SILENT VALUE("start  https://github.com/fay019/file-finder/blob/master/README.md ").
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define SELF-NAME m_Schliessen
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Schliessen C-Win
 ON CHOOSE OF MENU-ITEM m_Schliessen /* Schlieáen */
@@ -956,6 +982,17 @@ DO:
             RETURN NO-APPLY.
          END.
       END CASE. 
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME m_Select_Ordner
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Select_Ordner C-Win
+ON CHOOSE OF MENU-ITEM m_Select_Ordner /* Select Ordner */
+DO:
+  RUN get-dirname.
 END.
 
 /* _UIB-CODE-BLOCK-END */
