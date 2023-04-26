@@ -35,7 +35,9 @@ Search for text in the selected file.
 - [x]  - creat procedure get-filelist
 - [x]  - creat procedure list-filter
 - [x]  - creat procedure text-in-file
-- [ ]  - create filter
+- [x]  - creat procedure to-HTML file
+- [x]  - add Menu and Sub-Menu
+- [x]  - create filter
 - [ ]  - test
 - [ ]  - complate the readme.md
 
