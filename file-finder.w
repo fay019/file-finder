@@ -1740,9 +1740,20 @@ PROCEDURE p-to-html :
    PUT UNFORMATTED "</html>~n".
 
    OUTPUT CLOSE.
-   DO WITH FRAME {&FRAME-NAME}:
-   END.   
+   // When the job is finished, you will be asked to open the output file. 
+   MESSAGE "Der Job ist fertig" SKIP(1)
+       "Wollen Sie die Datei ”ffnen?"
+       VIEW-AS ALERT-BOX QUESTION BUTTONS YES-NO
+       TITLE "" UPDATE lChoice AS LOGICAL.
+     CASE lChoice:
+       WHEN TRUE THEN /* Yes */ DO:            
+          OS-COMMAND SILENT VALUE("start " + save-path).
+       END.
+     END CASE.    
 END PROCEDURE.
+/* DO WITH FRAME {&FRAME-NAME}: */
+/*                              */
+/* END.                         */
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
