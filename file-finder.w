@@ -124,6 +124,19 @@ FUNCTION f-reset-progressBar RETURNS LOGICAL
 /* Define the widget handle for the window                              */
 DEFINE VAR C-Win AS WIDGET-HANDLE NO-UNDO.
 
+/* Menu Definitions                                                     */
+DEFINE SUB-MENU m_Datei 
+       MENU-ITEM m_Schliessen   LABEL "&Schlieáen"    .
+
+DEFINE SUB-MENU m_Hilfe 
+       MENU-ITEM m_Inhalt       LABEL "&Inhalt"       
+       MENU-ITEM m_Berechtigung LABEL "&Berechtigung" .
+
+DEFINE MENU MENU-BAR-W-Win MENUBAR
+       SUB-MENU  m_Datei        LABEL "&Datei"        
+       SUB-MENU  m_Hilfe        LABEL "&Hilfe"        .
+
+
 /* Definitions of the field level widgets                               */
 DEFINE BUTTON btn-back 
      LABEL "Back" 
@@ -349,6 +362,8 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
          MESSAGE-AREA       = no
          SENSITIVE          = yes.
 ELSE {&WINDOW-NAME} = CURRENT-WINDOW.
+
+ASSIGN {&WINDOW-NAME}:MENUBAR = MENU MENU-BAR-W-Win:HANDLE.
 /* END WINDOW DEFINITION                                                */
 &ANALYZE-RESUME
 
@@ -912,12 +927,35 @@ END.
 
 &Scoped-define SELF-NAME i-text
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-text C-Win
-ON ANY-KEY OF i-text IN FRAME F-Main /* text */
+ON ANY-KEY OF i-text IN FRAME F-Main
 DO:
    IF CHR(LASTKEY) = chr(13) AND i-text:SCREEN-VALUE <> "" THEN DO: 
       DYNAMIC-FUNCTION('f-reset-progressBar':U).
       RUN p-search-file-or-folder.
    END. 
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME m_Schliessen
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Schliessen C-Win
+ON CHOOSE OF MENU-ITEM m_Schliessen /* Schlieáen */
+DO:
+   MESSAGE "Sind Sie sicher? " SKIP "Wollen Sie das Programm beenden?"
+      VIEW-AS ALERT-BOX QUESTION BUTTON YES-NO
+      TITLE "Schliessungsbest„tigung" UPDATE hf-wahl AS LOGICAL.
+      CASE hf-wahl:
+         WHEN TRUE THEN DO:
+            /* This event will close the window and terminate the procedure.  */
+            APPLY "CLOSE":U TO THIS-PROCEDURE.
+            RETURN NO-APPLY. 
+         END.
+         OTHERWISE DO:
+            RETURN NO-APPLY.
+         END.
+      END CASE. 
 END.
 
 /* _UIB-CODE-BLOCK-END */
