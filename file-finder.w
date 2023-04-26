@@ -73,12 +73,13 @@ DEF TEMP-TABLE tt-gefunden
 /* Standard List Definitions                                            */
 &Scoped-Define ENABLED-OBJECTS progress-bar-1 btn-search i-filen-lw ~
 i-filen-pf l-folder btn-search-new btn-back i-folder i-filter l-filen f-p ~
-f-csv btn-search-text f-file-or-fold f-w f-txt f-r f-all i-text f-text ~
-l-finded t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 ~
-t-finded 
+f-csv f-file-or-fold f-w f-txt i-text f-r f-all f-text btn-search-text ~
+l-finded t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 ~
+l-label-4 f-error-1 t-finded 
 &Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
-i-filter l-filen f-p f-csv f-file-or-fold f-w f-txt f-r f-all i-text f-text ~
-l-finded t-info l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 t-finded 
+i-filter l-filen f-p f-csv f-file-or-fold f-w f-txt i-text f-r f-all f-text ~
+l-finded t-info l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 l-label-4 ~
+f-error-1 t-finded 
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
@@ -110,6 +111,13 @@ FUNCTION f-get-ext RETURNS CHARACTER
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-reset-progressBar C-Win 
+FUNCTION f-reset-progressBar RETURNS LOGICAL
+  ( /* parameter-definitions */ )  FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
 
 /* ***********************  Control Definitions  ********************** */
 
@@ -131,7 +139,7 @@ DEFINE BUTTON btn-search-new
 
 DEFINE BUTTON btn-search-text 
      LABEL "Suche" 
-     SIZE 7 BY 1.15.
+     SIZE 23 BY 1.
 
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
@@ -162,7 +170,6 @@ DEFINE VARIABLE i-filen-pf AS CHARACTER FORMAT "X(256)":U
      SIZE 50 BY 1 NO-UNDO.
 
 DEFINE VARIABLE i-text AS CHARACTER FORMAT "X(256)":U 
-     LABEL "text" 
      VIEW-AS FILL-IN 
      SIZE 27 BY 1 NO-UNDO.
 
@@ -179,6 +186,14 @@ DEFINE VARIABLE l-label-1 AS CHARACTER FORMAT "X(256)":U INITIAL "List of Folder
      SIZE 12 BY .62 NO-UNDO.
 
 DEFINE VARIABLE l-label-2 AS CHARACTER FORMAT "X(256)":U INITIAL "List of File:" 
+      VIEW-AS TEXT 
+     SIZE 12 BY .62 NO-UNDO.
+
+DEFINE VARIABLE l-label-3 AS CHARACTER FORMAT "X(256)":U INITIAL "Wo zu suchen:" 
+      VIEW-AS TEXT 
+     SIZE 12 BY .62 NO-UNDO.
+
+DEFINE VARIABLE l-label-4 AS CHARACTER FORMAT "X(256)":U INITIAL "Wort:" 
       VIEW-AS TEXT 
      SIZE 12 BY .62 NO-UNDO.
 
@@ -274,14 +289,14 @@ DEFINE FRAME F-Main
      l-filen AT ROW 5.65 COL 13.57 NO-LABEL WIDGET-ID 18
      f-p AT ROW 6.38 COL 56 WIDGET-ID 20
      f-csv AT ROW 6.38 COL 63 WIDGET-ID 26
-     btn-search-text AT ROW 6.92 COL 7 WIDGET-ID 48
-     f-file-or-fold AT ROW 7.12 COL 16.43 NO-LABEL WIDGET-ID 58
+     f-file-or-fold AT ROW 7 COL 15 NO-LABEL WIDGET-ID 58
      f-w AT ROW 7.27 COL 56 WIDGET-ID 22
      f-txt AT ROW 7.27 COL 63 WIDGET-ID 28
+     i-text AT ROW 8.08 COL 11.57 COLON-ALIGNED NO-LABEL WIDGET-ID 50
      f-r AT ROW 8.15 COL 56 WIDGET-ID 24
      f-all AT ROW 8.15 COL 63 WIDGET-ID 30
-     i-text AT ROW 8.27 COL 5 COLON-ALIGNED WIDGET-ID 50
-     f-text AT ROW 9.35 COL 7 NO-LABEL WIDGET-ID 52
+     f-text AT ROW 9.35 COL 15 NO-LABEL WIDGET-ID 52
+     btn-search-text AT ROW 10.46 COL 13.72 WIDGET-ID 48
      l-finded AT ROW 12.23 COL 1.14 NO-LABEL WIDGET-ID 56
      t-info AT ROW 1.31 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
      t-filen AT ROW 2.81 COL 10.86 COLON-ALIGNED WIDGET-ID 8
@@ -289,10 +304,12 @@ DEFINE FRAME F-Main
      l-label-1 AT ROW 4.38 COL 1 NO-LABEL WIDGET-ID 34
      l-label-2 AT ROW 5.85 COL 1 NO-LABEL WIDGET-ID 36
      l-error-2 AT ROW 5.85 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 44
+     l-label-3 AT ROW 7 COL 1 NO-LABEL WIDGET-ID 70
+     l-label-4 AT ROW 8.31 COL 1 NO-LABEL WIDGET-ID 68
      f-error-1 AT ROW 9 COL 54 COLON-ALIGNED NO-LABEL WIDGET-ID 46
-     t-finded AT ROW 9.5 COL 31 NO-LABEL WIDGET-ID 62
-     progress-bar-1 AT ROW 10.46 COL 31 WIDGET-ID 64
-     progress-bar-2 AT ROW 10.54 COL 31.14 WIDGET-ID 66
+     t-finded AT ROW 9.5 COL 41.14 NO-LABEL WIDGET-ID 62
+     progress-bar-1 AT ROW 10.46 COL 41.14 WIDGET-ID 64
+     progress-bar-2 AT ROW 10.5 COL 41.29 WIDGET-ID 66
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COL 2.43 ROW 1.35
@@ -401,6 +418,16 @@ ASSIGN
    ALIGN-L                                                              */
 ASSIGN 
        l-label-2:READ-ONLY IN FRAME F-Main        = TRUE.
+
+/* SETTINGS FOR FILL-IN l-label-3 IN FRAME F-Main
+   ALIGN-L                                                              */
+ASSIGN 
+       l-label-3:READ-ONLY IN FRAME F-Main        = TRUE.
+
+/* SETTINGS FOR FILL-IN l-label-4 IN FRAME F-Main
+   ALIGN-L                                                              */
+ASSIGN 
+       l-label-4:READ-ONLY IN FRAME F-Main        = TRUE.
 
 /* SETTINGS FOR RECTANGLE progress-bar-2 IN FRAME F-Main
    NO-ENABLE                                                            */
@@ -516,10 +543,11 @@ DO:
    ASSIGN                 
       t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" + i-filen-pf:SCREEN-VALUE.
    ASSIGN 
-      hf-new-path = t-filen:SCREEN-VALUE.
-      i-filen-lw:HIDDEN = TRUE.
-      i-filen-pf:HIDDEN = TRUE.
-      t-filen:HIDDEN = FALSE.
+      hf-new-path = t-filen:SCREEN-VALUE
+      i-filen-lw:HIDDEN = TRUE
+      i-filen-pf:HIDDEN = TRUE
+      t-filen:HIDDEN    = FALSE  
+      btn-search:HIDDEN = TRUE.
    RUN get-filelist.
 END.
 
@@ -533,9 +561,10 @@ ON CHOOSE OF btn-search IN FRAME F-Main /* OK */
 DO:
    IF t-filen:SCREEN-VALUE <> "" THEN DO: 
       ASSIGN
-         i-filen-lw:HIDDEN = TRUE.
-         i-filen-pf:HIDDEN = TRUE.
-         t-filen:HIDDEN = FALSE.
+         i-filen-lw:HIDDEN = TRUE
+         i-filen-pf:HIDDEN = TRUE
+         t-filen:HIDDEN    = FALSE
+         btn-search:HIDDEN = TRUE.
       RUN get-filelist.      
    END.
    ELSE DO:
@@ -584,8 +613,10 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search-text C-Win
 ON CHOOSE OF btn-search-text IN FRAME F-Main /* Suche */
 DO:
-   IF i-text:SCREEN-VALUE <> "" THEN
+   IF i-text:SCREEN-VALUE <> "" THEN DO:
+      DYNAMIC-FUNCTION('f-reset-progressBar':U).
       RUN p-search-file-or-folder.
+   END.      
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -778,12 +809,34 @@ END.
 &ANALYZE-RESUME
 
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-lw C-Win
+ON VALUE-CHANGED OF i-filen-lw IN FRAME F-Main /* Folder path */
+DO:
+   ASSIGN 
+      btn-search:HIDDEN = FALSE.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define SELF-NAME i-filen-pf
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-pf C-Win
 ON MOUSE-SELECT-DBLCLICK OF i-filen-pf IN FRAME F-Main
 DO:   
    t-info:HIDDEN = TRUE.
    RUN get-dirname.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-pf C-Win
+ON VALUE-CHANGED OF i-filen-pf IN FRAME F-Main
+DO:
+   ASSIGN 
+      btn-search:HIDDEN = FALSE.
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -851,6 +904,20 @@ DO:
    END.
    IF l-filen:LIST-ITEMS <> "" AND l-filen:LIST-ITEMS <> ? THEN
       RUN get-filelist.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME i-text
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-text C-Win
+ON ANY-KEY OF i-text IN FRAME F-Main /* text */
+DO:
+   IF CHR(LASTKEY) = chr(13) AND i-text:SCREEN-VALUE <> "" THEN DO: 
+      DYNAMIC-FUNCTION('f-reset-progressBar':U).
+      RUN p-search-file-or-folder.
+   END. 
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -994,14 +1061,15 @@ PROCEDURE enable_UI :
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
   DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-p f-csv 
-          f-file-or-fold f-w f-txt f-r f-all i-text f-text l-finded t-info 
-          l-error-1 l-label-1 l-label-2 l-error-2 f-error-1 t-finded 
+          f-file-or-fold f-w f-txt i-text f-r f-all f-text l-finded t-info 
+          l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 l-label-4 f-error-1 
+          t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
   ENABLE progress-bar-1 btn-search i-filen-lw i-filen-pf l-folder 
          btn-search-new btn-back i-folder i-filter l-filen f-p f-csv 
-         btn-search-text f-file-or-fold f-w f-txt f-r f-all i-text f-text 
+         f-file-or-fold f-w f-txt i-text f-r f-all f-text btn-search-text 
          l-finded t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 
-         f-error-1 t-finded 
+         l-label-3 l-label-4 f-error-1 t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
   VIEW C-Win.
@@ -1043,9 +1111,11 @@ DO WITH FRAME {&FRAME-NAME}:
       END.
       ELSE
          ASSIGN i-filen-pf:SCREEN-VALUE = "".  
-      i-filen-lw:HIDDEN = TRUE.
-      i-filen-pf:HIDDEN = TRUE.
-      t-filen:HIDDEN = FALSE.
+      ASSIGN 
+         i-filen-lw:HIDDEN = TRUE
+         i-filen-pf:HIDDEN = TRUE
+         t-filen:HIDDEN    = FALSE
+         btn-search:HIDDEN = TRUE.
    END.      
    RUN get-filelist.
 END.
@@ -1327,9 +1397,6 @@ DO WITH FRAME {&FRAME-NAME}:
          hf-file-num = iNumEntries.
          
       DO iLoop = 1 TO iNumEntries:
-         IF iLoop = iNumEntries THEN DO:
-            SESSION:SET-WAIT-STATE("").
-         END.
          ASSIGN
             progress-bar-2:HIDDEN = FALSE
             progress-bar-2:WIDTH-PIXELS = ((iLoop / iNumEntries) * 100) * 2
@@ -1338,7 +1405,17 @@ DO WITH FRAME {&FRAME-NAME}:
             t-finded:SCREEN-VALUE = STRING(iLoop) + "/" + STRING(iNumEntries) + " -- " + STRING( ROUND((iLoop / iNumEntries) * 100, 0 )) + "%" 
             hf-file-name-g = ENTRY(iLoop,hf-file-path,",")
             hf-file-path-g = t-filen:SCREEN-VALUE + "~\" + ENTRY(iLoop,hf-file-path,",")
-            hf-ext-g = DYNAMIC-FUNCTION('f-get-ext':U,hf-file-path-g ).  
+            hf-ext-g = DYNAMIC-FUNCTION('f-get-ext':U,hf-file-path-g ).
+         IF iLoop = iNumEntries THEN DO:
+            SESSION:SET-WAIT-STATE("").                    
+            ASSIGN
+               t-finded:FONT = 7
+               t-finded:COLUMN = 52  
+               t-finded:ROW = 10.70
+               t-finded:WIDTH-PIXELS = 50
+               t-finded:BGCOLOR = 10
+               t-finded:SCREEN-VALUE = "FERTIG".
+               END.  
          RUN p-search-text.   
       END.
     END.
@@ -1368,6 +1445,7 @@ DO WITH FRAME {&FRAME-NAME}:
    DEF VAR hf-char       AS CHAR     NO-UNDO.
    DEF VAR hf-word       AS CHAR     NO-UNDO.
    DEF VAR hf-word-line  AS CHAR     NO-UNDO.
+   DEF VAR hf-temp  AS CHAR     NO-UNDO.
    ASSIGN
       hf-line = 1
       hf-text = ""
@@ -1433,6 +1511,12 @@ DO WITH FRAME {&FRAME-NAME}:
             l-finded:INSERT-STRING( "Word: " + hf-word + "~n"). 
             FIND FIRST tt-file-line WHERE tt-file-line.id = hf-line NO-LOCK NO-ERROR.
             IF AVAILABLE tt-file-line THEN DO:
+               // remouve the last char if is an line brack, and make a trim
+               IF (SUBSTRING(hf-word, LENGTH(hf-word), 1) = CHR(10)) THEN DO: 
+                  ASSIGN 
+                     hf-word = SUBSTRING(hf-word, 1, LENGTH(hf-word) - 1).
+                     hf-word = TRIM(hf-word).
+               END.
                CREATE tt-gefunden.
                ASSIGN
                   tt-gefunden.datei-path = hf-file-path-g    
@@ -1466,8 +1550,10 @@ PROCEDURE p-to-html :
   Notes:       
 ------------------------------------------------------------------------------*/ 
    DEF VAR hf-i AS INT NO-UNDO.
+   DEF VAR hf-temp AS CHAR NO-UNDO.
    DEF VAR p-head AS CHAR NO-UNDO.
    DEF VAR p-script AS CHAR NO-UNDO.
+   DEF VAR p-search AS CHAR NO-UNDO.
    DEF VAR save-path AS CHAR NO-UNDO.
    DEF VAR hf-old AS CHAR NO-UNDO.
    
@@ -1501,6 +1587,22 @@ PROCEDURE p-to-html :
            cursor: pointer;~n
            font-weight: bold;~n
          ~}~n
+         input[type=~"text~"] ~{
+           padding: 5px;
+           border: 1px solid #ccc;
+           border-radius: 4px;
+           box-sizing: border-box;
+           margin-top: 10px;
+         ~}
+         button ~{
+           background-color: #4CAF50;
+           color: white;
+           padding: 5px 10px;
+           border: none;
+           border-radius: 4px;
+           cursor: pointer;
+           margin-top: 10px;
+         ~}
       </style>~n
    </head> ~n
    <body>~n".
@@ -1558,6 +1660,27 @@ PROCEDURE p-to-html :
      ~}); ~n
    ~});  ~n
 </script>~n".
+
+
+   ASSIGN p-search = "function searchTable() ~{~n
+  var input, filter, table, tr, td, i, j, txtValue; ~n
+  input = document.getElementById(~"searchInput~");~n
+  filter = input.value.toUpperCase(); ~n
+  table = document.getElementById(~"myTable~"); ~n
+  tr = table.getElementsByTagName(~"tr~");  ~n
+  for (i = 0; i < tr.length; i++) ~{  ~n
+    td = tr[i].getElementsByTagName(~"td~"); ~n
+    for (j = 0; j < td.length; j++) ~{~n
+      txtValue = td[j].textContent || td[j].innerText;~n
+      if (txtValue.toUpperCase().indexOf(filter) > -1) ~{ ~n
+        tr[i].style.display = ~"~";  ~n
+        break;    ~n
+      ~} else ~{ ~n
+        tr[i].style.display = ~"none~";~n
+      ~} ~n
+    ~} ~n
+  ~} ~n
+~}~n".
    
    
    
@@ -1569,7 +1692,9 @@ PROCEDURE p-to-html :
 /*    PUT UNFORMATTED "<body>~n".                 */
    
    PUT UNFORMATTED p-head.
-   PUT UNFORMATTED "<table>~n".
+   PUT UNFORMATTED "<input type=~"text~" id=~"searchInput~">
+<button onclick=~"searchTable()~">Rechercher</button>".
+   PUT UNFORMATTED "<table id=~"myTable~">~n".
    PUT UNFORMATTED "<tr>~n<th>Nø</th>~n<th>Path</th>~n<th>Name</th>~n<th>Wort</th>~n<th>L Nø</th>~n<th>Linie</th>~n</tr>~n".
 
   FOR EACH tt-gefunden :
@@ -1601,12 +1726,14 @@ PROCEDURE p-to-html :
        PUT UNFORMATTED "~{~n".
        PUT UNFORMATTED "~"path~" : ~"" tt-gefunden.datei-path "~",~n".
        PUT UNFORMATTED "~"name~" : ~"" tt-gefunden.datei-name "~",~n".
-       PUT UNFORMATTED "~"wort~" : ~"" tt-gefunden.wort "~",~n".
+       PUT UNFORMATTED "~"wort~" : ~""  tt-gefunden.wort "~",~n".
        PUT UNFORMATTED "~"l-num~" : " tt-gefunden.linie-num ",~n".
        PUT UNFORMATTED "~"linie~" : `" tt-gefunden.linie "`~n".
        PUT UNFORMATTED "~},~n".
    END.    
    PUT UNFORMATTED "];~n".
+   
+   PUT UNFORMATTED p-search. 
    PUT UNFORMATTED "</script>~n". 
 
    PUT UNFORMATTED "</body>~n".
@@ -1614,12 +1741,6 @@ PROCEDURE p-to-html :
 
    OUTPUT CLOSE.
    DO WITH FRAME {&FRAME-NAME}:
-      ASSIGN
-         t-finded:FONT = 7
-         t-finded:COLUMN = 42
-         t-finded:WIDTH-PIXELS = 40
-         t-finded:BGCOLOR = 10
-         t-finded:SCREEN-VALUE = "FERTIG".
    END.   
 END PROCEDURE.
 
@@ -1692,6 +1813,32 @@ FUNCTION f-get-ext RETURNS CHARACTER
       ASSIGN hf-result =  "".
       
    RETURN hf-result.
+END FUNCTION.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-reset-progressBar C-Win 
+FUNCTION f-reset-progressBar RETURNS LOGICAL
+  ( /* parameter-definitions */ ) :
+/*------------------------------------------------------------------------------
+  Purpose:  
+    Notes:  
+------------------------------------------------------------------------------*/
+DO WITH FRAME {&FRAME-NAME}:    
+   ASSIGN
+      progress-bar-2:HIDDEN = TRUE
+      progress-bar-2:WIDTH-PIXELS = 1
+      progress-bar-2:BGCOLOR = ?
+      t-finded:FONT = 1
+      t-finded:COLUMN = 41.14
+      t-finded:ROW = 9.50
+      t-finded:WIDTH-PIXELS = 100
+      t-finded:BGCOLOR = ?
+      t-finded:SCREEN-VALUE = "".     
+   RETURN FALSE.
+END.  
+
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
