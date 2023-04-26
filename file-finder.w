@@ -290,9 +290,9 @@ DEFINE FRAME F-Main
      l-label-2 AT ROW 5.85 COL 1 NO-LABEL WIDGET-ID 36
      l-error-2 AT ROW 5.85 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 44
      f-error-1 AT ROW 9 COL 54 COLON-ALIGNED NO-LABEL WIDGET-ID 46
-     t-finded AT ROW 10.88 COL 1.29 NO-LABEL WIDGET-ID 62
-     progress-bar-1 AT ROW 10.69 COL 31 WIDGET-ID 64
-     progress-bar-2 AT ROW 10.73 COL 31.14 WIDGET-ID 66
+     t-finded AT ROW 9.5 COL 31 NO-LABEL WIDGET-ID 62
+     progress-bar-1 AT ROW 10.46 COL 31 WIDGET-ID 64
+     progress-bar-2 AT ROW 10.54 COL 31.14 WIDGET-ID 66
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COL 2.43 ROW 1.35
@@ -1179,63 +1179,6 @@ END PROCEDURE.
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE get-filename C-Win 
-PROCEDURE get-filename :
-/*------------------------------------------------------------------------------
-  Purpose:     
-  Parameters:  <none>
-  Notes:    Open the file window and get the path and name of the selected file 
-            after clicking the "OK" button or by double-clicking the selected file.
-            The predefined files are
-            Excel *.csv
-            Text *.txt
-            Program *.p
-            Mask *.w  
-------------------------------------------------------------------------------*/
-/* do with frame {&FRAME-NAME}:                                                                                  */
-/*    define variable file-name     as CHARACTER no-undo.                                                        */
-/*    define variable firstdpplpkt  as integer   no-undo.                                                        */
-/*    define variable lastbackslash as integer   no-undo.                                                        */
-/*    define variable lastpoint     as integer   no-undo.                                                        */
-/*    define variable found-file    as logical   no-undo.                                                        */
-/*                                                                                                               */
-/*    system-dialog get-file file-name                                                                           */
-/*       filters                                                                                                 */
-/*               "alle Dateien (*.*)" "*.*",                                                                     */
-/*               "Text (*.txt)" "*.txt",                                                                         */
-/*               "Excel (*.csv)" "*.csv",                                                                        */
-/*               "Programme (*.p)" "*.p",                                                                        */
-/*               "Mask (*.w)" "*.w"                                                                              */
-/*       return-to-start-dir                                                                                     */
-/*       title "Suche Dateiname"                                                                                 */
-/*       update found-file.                                                                                      */
-/*                                                                                                               */
-/*    if found-file then do:                                                                                     */
-/*       // ASSIGN hf-file-path = FILE-NAME.                                                                     */
-/*       assign firstdpplpkt  =   index (file-name, ":")                                                         */
-/*              lastbackslash = r-index (file-name, "\")                                                         */
-/*              lastpoint     = r-index (file-name, ".").                                                        */
-/*       if firstdpplpkt <> 0 then                                                                               */
-/*          i-filen-lw:screen-value = substring (file-name, 1, firstdpplpkt - 1).                                */
-/*       else                                                                                                    */
-/*          i-filen-lw:screen-value = "".                                                                        */
-/*       if lastbackslash <> 0 THEN DO:                                                                          */
-/*          ASSIGN                                                                                               */
-/*             i-filen-pf:screen-value = substring (file-name, firstdpplpkt + 1, lastbackslash - firstdpplpkt)   */
-/*             i-filen:screen-value = substring (file-name, lastbackslash + 1).                                  */
-/*             // w-filen:SCREEN-VALUE = substring (file-name, lastbackslash + 1, lastpoint - lastbackslash - 1) */
-/*             // hf-file-ext = SUBSTRING(file-name, lastpoint + 1 ).                                            */
-/*       END.                                                                                                    */
-/*       else                                                                                                    */
-/*          assign i-filen-pf:screen-value = ""                                                                  */
-/*                 i-filen:screen-value = file-name.                                                             */
-/*    end.                                                                                                       */
-/* end.                                                                                                          */
-END PROCEDURE.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE get-screen-size C-Win 
 PROCEDURE get-screen-size :
 /*------------------------------------------------------------------------------
@@ -1317,24 +1260,6 @@ END PROCEDURE.
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-diplay-tt C-Win 
-PROCEDURE p-diplay-tt :
-/*------------------------------------------------------------------------------
-  Purpose:     
-  Parameters:  <none>
-  Notes:       
-------------------------------------------------------------------------------*/
-//DO WITH FRAME {&FRAME-NAME}:
-//END.
-
-//WAIT-FOR PROCEDURE-COMPLETE OF p-search-file-or-folder.
-
-
-END PROCEDURE.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-file-to-table C-Win 
 PROCEDURE p-file-to-table :
 /*------------------------------------------------------------------------------
@@ -1346,16 +1271,21 @@ PROCEDURE p-file-to-table :
 DO WITH FRAME {&FRAME-NAME}:
    DEF VAR hf-i AS INT NO-UNDO INIT 0.
    DEF VAR hf-file-path AS CHAR NO-UNDO.
-   EMPTY TEMP-TABLE tt-file-line NO-ERROR. // reset the table if we have
+   DEF VAR hf-temp-txt AS CHAR NO-UNDO.
    
-   //ASSIGN hf-file-path = t-filen:SCREEN-VALUE + "~\" + l-filen:SCREEN-VALUE.
-   INPUT FROM VALUE(hf-file-path-g).
+   EMPTY TEMP-TABLE tt-file-line NO-ERROR. // reset the table if we have 
+   
+   INPUT FROM VALUE(hf-file-path-g) CONVERT SOURCE "UTF-8".
    REPEAT TRANSACTION:
+      IMPORT DELIMITER "~n" hf-temp-txt. 
       CREATE tt-file-line.
       ASSIGN   
          hf-i = hf-i + 1
          tt-file-line.id = hf-i.
-      IMPORT DELIMITER "~n" tt-file-line.txt.
+      IF LENGTH(hf-temp-txt) > 200  THEN   
+         ASSIGN tt-file-line.txt = SUBSTRING(hf-temp-txt, 1, 200) + "...".
+      ELSE
+         ASSIGN tt-file-line.txt = SUBSTRING(hf-temp-txt, 1, 200).
    END.
    OUTPUT CLOSE. 
 END.
@@ -1535,18 +1465,17 @@ PROCEDURE p-to-html :
   Parameters:  <none>
   Notes:       
 ------------------------------------------------------------------------------*/ 
-   DEF VAR file-handle AS HANDLE NO-UNDO.
-   DEF VAR i AS INT NO-UNDO.
+   DEF VAR hf-i AS INT NO-UNDO.
    DEF VAR p-head AS CHAR NO-UNDO.
    DEF VAR p-script AS CHAR NO-UNDO.
    DEF VAR save-path AS CHAR NO-UNDO.
-   DEF VAR p-script-json AS CHAR NO-UNDO.
+   DEF VAR hf-old AS CHAR NO-UNDO.
    
    ASSIGN save-path = "C:~\temp~\tableau-fichier.html".
 
    OUTPUT TO VALUE(save-path) CONVERT SOURCE "ISO8859-1" TARGET "UTF-8". 
    
-
+   ASSIGN  hf-i  = 0.
    ASSIGN p-head = "<!DOCTYPE html>~n
 <html lang=~"de~">~n
    <head>~n
@@ -1641,16 +1570,26 @@ PROCEDURE p-to-html :
    
    PUT UNFORMATTED p-head.
    PUT UNFORMATTED "<table>~n".
-   PUT UNFORMATTED "<tr>~n<th>Path</th>~n<th>Name</th>~n<th>Wort</th>~n<th>L Nø</th>~n<th>Linie</th>~n</tr>~n".
+   PUT UNFORMATTED "<tr>~n<th>Nø</th>~n<th>Path</th>~n<th>Name</th>~n<th>Wort</th>~n<th>L Nø</th>~n<th>Linie</th>~n</tr>~n".
 
   FOR EACH tt-gefunden :
-       PUT UNFORMATTED "<tr>~n".
-       PUT UNFORMATTED "<td id= ~"d-path~">" tt-gefunden.datei-path "</td>~n".
-       PUT UNFORMATTED "<td>" tt-gefunden.datei-name "</td>~n".
-       PUT UNFORMATTED "<td>" tt-gefunden.wort "</td>~n".
-       PUT UNFORMATTED "<td>" tt-gefunden.linie-num "</td>~n".
-       PUT UNFORMATTED "<td>" tt-gefunden.linie "</td>~n".
-       PUT UNFORMATTED "</tr>~n".
+      PUT UNFORMATTED "<tr>~n".
+      IF hf-old <> tt-gefunden.datei-path THEN DO:
+         ASSIGN hf-i  = hf-i + 1. 
+         PUT UNFORMATTED "<td>" hf-i "</td>~n".
+         PUT UNFORMATTED "<td id= ~"d-path~">" tt-gefunden.datei-path "</td>~n".
+         PUT UNFORMATTED "<td>" tt-gefunden.datei-name "</td>~n".
+      END.
+      ELSE DO:  
+         PUT UNFORMATTED "<td> - </td>~n".
+         PUT UNFORMATTED "<td> - </td>~n".
+         PUT UNFORMATTED "<td> - </td>~n".
+      END.
+      PUT UNFORMATTED "<td>" tt-gefunden.wort "</td>~n".
+      PUT UNFORMATTED "<td>" tt-gefunden.linie-num "</td>~n".
+      PUT UNFORMATTED "<td>" tt-gefunden.linie "</td>~n".
+      PUT UNFORMATTED "</tr>~n".
+      ASSIGN hf-old = tt-gefunden.datei-path.
    END.
 
    PUT UNFORMATTED "</table>~n".
