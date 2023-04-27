@@ -1481,25 +1481,11 @@ DO WITH FRAME {&FRAME-NAME}:
          
       DO iLoop = 1 TO iNumEntries:
          ASSIGN
-            progress-bar-2:HIDDEN = FALSE
-            progress-bar-2:WIDTH-PIXELS = ((iLoop / iNumEntries) * 100) * 2
-            progress-bar-2:FILLED = TRUE
-            progress-bar-2:BGCOLOR = 10
-            t-finded:SCREEN-VALUE = STRING(iLoop) + "/" + STRING(iNumEntries) + " -- " + STRING( ROUND((iLoop / iNumEntries) * 100, 0 )) + "%" 
             hf-file-name-g = ENTRY(iLoop,hf-file-path,",")
             hf-file-path-g = t-filen:SCREEN-VALUE + "~\" + ENTRY(iLoop,hf-file-path,",")
-            hf-ext-g = DYNAMIC-FUNCTION('f-get-ext':U,hf-file-path-g ).
-         IF iLoop = iNumEntries THEN DO:
-            SESSION:SET-WAIT-STATE("").                    
-            ASSIGN
-               t-finded:FONT = 7
-               t-finded:COLUMN = 52  
-               t-finded:ROW = 10.70
-               t-finded:WIDTH-PIXELS = 50
-               t-finded:BGCOLOR = 10
-               t-finded:SCREEN-VALUE = "FERTIG".
-               END.  
-         RUN p-search-text.   
+            hf-ext-g = DYNAMIC-FUNCTION('f-get-ext':U,hf-file-path-g ).                  
+         IF DYNAMIC-FUNCTION('f-progressBar':U, iLoop, iNumEntries) THEN
+            RUN p-search-text.  
       END.
     END.
       
@@ -1595,23 +1581,25 @@ DO WITH FRAME {&FRAME-NAME}:
             FIND FIRST tt-file-line WHERE tt-file-line.id = hf-line NO-LOCK NO-ERROR.
             IF AVAILABLE tt-file-line THEN DO:
                // remouve the last char if is an line brack, and make a trim
-               IF (SUBSTRING(hf-word, LENGTH(hf-word), 1) = CHR(10)) THEN DO: 
-                  ASSIGN 
-                     hf-word = SUBSTRING(hf-word, 1, LENGTH(hf-word) - 1)
-                     hf-word = TRIM(hf-word)     
-                     hf-word = TRIM(hf-word, "<>,.;:!? ~"~ '[]()")
-                     hf-word = REPLACE(hf-word, "<", "")
-                     hf-word = REPLACE(hf-word, ">", "")
-                     hf-word = REPLACE(hf-word, "~~n", "")
-                     hf-word = TRIM(hf-word).
-               END.
+/*                IF (SUBSTRING(hf-word, LENGTH(hf-word), 1) = CHR(10)) THEN DO: */
+/*                   ASSIGN                                                      */
+/*                      hf-word = SUBSTRING(hf-word, 1, LENGTH(hf-word) - 1)     */
+/*                      hf-word = TRIM(hf-word)                                  */
+/*                      hf-word = TRIM(hf-word, "<>,.;:!? ~"~ '[]()")            */
+/*                      hf-word = REPLACE(hf-word, "<", "")                      */
+/*                      hf-word = REPLACE(hf-word, ">", "")                      */
+/*                      hf-word = REPLACE(hf-word, "~~n", "")                    */
+/*                      hf-word = TRIM(hf-word).                                 */
+/*                END.                                                           */
                CREATE tt-gefunden.
                ASSIGN
                   tt-gefunden.datei-path = hf-file-path-g    
                   tt-gefunden.datei-name = hf-file-name-g
-                  tt-gefunden.wort  = TRIM(hf-word, "<>,.;:!? ~"~ '[]()")
+                  //tt-gefunden.wort  = TRIM(hf-word, "<>,.;:!? ~"~ '[]()")
+                  tt-gefunden.wort  = hf-word
                   tt-gefunden.linie-num  = tt-file-line.id    
-                  tt-gefunden.linie = REPLACE(tt-file-line.txt, "`", ""). // for not make confusion in html output
+                  //tt-gefunden.linie = REPLACE(tt-file-line.txt, "`", ""). // for not make confusion in html output
+                  tt-gefunden.linie = tt-file-line.txt. 
                l-finded:INSERT-STRING( STRING(tt-file-line.id) + "=> " + tt-file-line.txt + "~n" ).    
             END.
             l-finded:INSERT-STRING( "-----------------------------------------~n").                
@@ -1644,8 +1632,12 @@ PROCEDURE p-to-html :
    DEF VAR p-search AS CHAR NO-UNDO.
    DEF VAR save-path AS CHAR NO-UNDO.
    DEF VAR hf-old AS CHAR NO-UNDO.
+   DEF VAR hf-linie AS CHAR NO-UNDO.
+   DEF VAR hf-wort AS CHAR NO-UNDO.
    
-   ASSIGN save-path = "C:~\temp~\tableau-fichier.html".
+   ASSIGN
+      hf-linie = ""
+      save-path = "C:~\temp~\tableau-fichier.html".
 
    OUTPUT TO VALUE(save-path) CONVERT SOURCE "ISO8859-1" TARGET "UTF-8". 
    
@@ -1785,7 +1777,19 @@ PROCEDURE p-to-html :
    PUT UNFORMATTED "<table id=~"myTable~">~n".
    PUT UNFORMATTED "<tr>~n<th>Nø</th>~n<th>Path</th>~n<th>Name</th>~n<th>Wort</th>~n<th>L Nø</th>~n<th>Linie</th>~n</tr>~n".
 
-  FOR EACH tt-gefunden :
+   FOR EACH tt-gefunden :
+      ASSIGN 
+         hf-wort = tt-gefunden.wort.
+      // remouve the last char if is an line brack, and make a trim
+      IF (SUBSTRING(hf-wort, LENGTH(hf-wort), 1) = CHR(10)) THEN DO:
+         ASSIGN
+            hf-wort = SUBSTRING(hf-wort, 1, LENGTH(hf-wort) - 1)
+            hf-wort = TRIM(hf-wort).
+      END.
+      ASSIGN 
+         hf-linie = REPLACE(tt-gefunden.linie, "~"", "~\~"")
+         hf-linie = REPLACE(hf-linie, "<", "~\<")
+         hf-linie = REPLACE(hf-linie, ">", "~\>").
       PUT UNFORMATTED "<tr>~n".
       IF hf-old <> tt-gefunden.datei-path THEN DO:
          ASSIGN hf-i  = hf-i + 1. 
@@ -1798,9 +1802,9 @@ PROCEDURE p-to-html :
          PUT UNFORMATTED "<td> - </td>~n".
          PUT UNFORMATTED "<td> - </td>~n".
       END.
-      PUT UNFORMATTED "<td>" tt-gefunden.wort "</td>~n".
+      PUT UNFORMATTED "<td><xmp>" hf-wort "</xmp></td>~n".
       PUT UNFORMATTED "<td>" tt-gefunden.linie-num "</td>~n".
-      PUT UNFORMATTED "<td>" tt-gefunden.linie "</td>~n".
+      PUT UNFORMATTED "<td><xmp>" tt-gefunden.linie "</xmp></td>~n".
       PUT UNFORMATTED "</tr>~n".
       ASSIGN hf-old = tt-gefunden.datei-path.
    END.
@@ -1811,12 +1815,23 @@ PROCEDURE p-to-html :
    PUT UNFORMATTED "<script>~n".
    PUT UNFORMATTED "const data = [~n".
    FOR EACH tt-gefunden :
+      ASSIGN 
+         hf-wort = tt-gefunden.wort
+         hf-wort = REPLACE(hf-wort, "~"", "~\~"")
+         hf-wort = REPLACE(hf-wort, "<", "~\<")
+         hf-wort = REPLACE(hf-wort, ">", "~\>").
+      // remouve the last char if is an line brack, and make a trim
+      IF (SUBSTRING(hf-wort, LENGTH(hf-wort), 1) = CHR(10)) THEN DO:
+         ASSIGN
+            hf-wort = SUBSTRING(hf-wort, 1, LENGTH(hf-wort) - 1)
+            hf-wort = TRIM(hf-wort).
+      END.
        PUT UNFORMATTED "~{~n".
        PUT UNFORMATTED "~"path~" : ~"" tt-gefunden.datei-path "~",~n".
        PUT UNFORMATTED "~"name~" : ~"" tt-gefunden.datei-name "~",~n".
-       PUT UNFORMATTED "~"wort~" : ~""  tt-gefunden.wort "~",~n".
+       PUT UNFORMATTED "~"wort~" : ~""  hf-wort "~",~n".
        PUT UNFORMATTED "~"l-num~" : " tt-gefunden.linie-num ",~n".
-       PUT UNFORMATTED "~"linie~" : `" tt-gefunden.linie "`~n".
+       PUT UNFORMATTED "~"linie~" : ~"" hf-linie "~"~n".
        PUT UNFORMATTED "~},~n".
    END.    
    PUT UNFORMATTED "];~n".
