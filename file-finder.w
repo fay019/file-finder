@@ -111,6 +111,13 @@ FUNCTION f-get-ext RETURNS CHARACTER
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-progressBar C-Win 
+FUNCTION f-progressBar RETURNS LOGICAL
+  ( i-loop AS INT, j-loop AS INT)  FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-reset-progressBar C-Win 
 FUNCTION f-reset-progressBar RETURNS LOGICAL
   ( /* parameter-definitions */ )  FORWARD.
@@ -126,7 +133,7 @@ DEFINE VAR C-Win AS WIDGET-HANDLE NO-UNDO.
 
 /* Menu Definitions                                                     */
 DEFINE SUB-MENU m_Datei 
-       MENU-ITEM m_Select_Ordner LABEL "&Select Ordner"
+       MENU-ITEM m_Select_Ordner LABEL "&Select Ordner" ACCELERATOR "F3"
        MENU-ITEM m_Schliessen   LABEL "&Schlieáen"    .
 
 DEFINE SUB-MENU m_Hilfe 
@@ -1462,7 +1469,8 @@ DO WITH FRAME {&FRAME-NAME}:
          hf-ext-g = DYNAMIC-FUNCTION('f-get-ext':U,l-filen:SCREEN-VALUE )
          hf-file-path-g = t-filen:SCREEN-VALUE + "~\" + l-filen:SCREEN-VALUE
          hf-file-name-g = l-filen:SCREEN-VALUE.         
-      RUN p-search-text.   
+      IF DYNAMIC-FUNCTION('f-progressBar':U, 1, 1) THEN
+         RUN p-search-text.   
     END.
     ELSE DO:
       SESSION:SET-WAIT-STATE("no":U).
@@ -1589,16 +1597,21 @@ DO WITH FRAME {&FRAME-NAME}:
                // remouve the last char if is an line brack, and make a trim
                IF (SUBSTRING(hf-word, LENGTH(hf-word), 1) = CHR(10)) THEN DO: 
                   ASSIGN 
-                     hf-word = SUBSTRING(hf-word, 1, LENGTH(hf-word) - 1).
+                     hf-word = SUBSTRING(hf-word, 1, LENGTH(hf-word) - 1)
+                     hf-word = TRIM(hf-word)     
+                     hf-word = TRIM(hf-word, "<>,.;:!? ~"~ '[]()")
+                     hf-word = REPLACE(hf-word, "<", "")
+                     hf-word = REPLACE(hf-word, ">", "")
+                     hf-word = REPLACE(hf-word, "~~n", "")
                      hf-word = TRIM(hf-word).
                END.
                CREATE tt-gefunden.
                ASSIGN
                   tt-gefunden.datei-path = hf-file-path-g    
                   tt-gefunden.datei-name = hf-file-name-g
-                  tt-gefunden.wort  = TRIM(hf-word, ",.;:!? ~"~ '[]()")
+                  tt-gefunden.wort  = TRIM(hf-word, "<>,.;:!? ~"~ '[]()")
                   tt-gefunden.linie-num  = tt-file-line.id    
-                  tt-gefunden.linie = tt-file-line.txt. 
+                  tt-gefunden.linie = REPLACE(tt-file-line.txt, "`", ""). // for not make confusion in html output
                l-finded:INSERT-STRING( STRING(tt-file-line.id) + "=> " + tt-file-line.txt + "~n" ).    
             END.
             l-finded:INSERT-STRING( "-----------------------------------------~n").                
@@ -1899,6 +1912,45 @@ FUNCTION f-get-ext RETURNS CHARACTER
       ASSIGN hf-result =  "".
       
    RETURN hf-result.
+END FUNCTION.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-progressBar C-Win 
+FUNCTION f-progressBar RETURNS LOGICAL
+  ( i-loop AS INT, j-loop AS INT) :
+/*------------------------------------------------------------------------------
+  Purpose:  
+    Notes:  
+------------------------------------------------------------------------------*/
+IF i-loop <= j-loop THEN DO:
+   DO WITH FRAME {&FRAME-NAME}:  
+      ASSIGN
+         progress-bar-2:HIDDEN = FALSE
+         progress-bar-2:WIDTH-PIXELS = (( i-loop / j-loop) * 100) * 2
+         progress-bar-2:FILLED = TRUE
+         progress-bar-2:BGCOLOR = 10
+         t-finded:SCREEN-VALUE = STRING( i-loop) + "/" + STRING(j-loop) + " -- " + STRING( ROUND(( i-loop / j-loop) * 100, 0 )) + "%" .
+         
+      IF i-loop = j-loop THEN DO:
+         SESSION:SET-WAIT-STATE("").                    
+         ASSIGN
+            t-finded:FONT = 7
+            t-finded:COLUMN = 52  
+            t-finded:ROW = 10.70
+            t-finded:WIDTH-PIXELS = 50
+            t-finded:BGCOLOR = 10
+            t-finded:SCREEN-VALUE = "FERTIG".
+      END.     
+   END.
+   RETURN TRUE. /* Function return value. */
+END.
+ELSE DO:
+   MESSAGE "Wir haben ein Fehler" SKIP "A kann nicht gr”áer sein als B" VIEW-AS ALERT-BOX .
+   RETURN FALSE.
+END.
+   
 END FUNCTION.
 
 /* _UIB-CODE-BLOCK-END */
