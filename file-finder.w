@@ -36,13 +36,15 @@ CREATE WIDGET-POOL.
 
 /* Local Variable Definitions ---                                       */
 
-DEF VAR hf-new-path     AS CHAR NO-UNDO INIT "". // Triggers "btn-back, btn-search-new" procedur "get-filelist"
-DEF VAR hf-file-path-g  AS CHAR NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
-DEF VAR hf-ext-g        AS CHAR NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
-DEF VAR hf-file-name-g  AS CHAR NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
-DEF VAR hf-file-num     AS INT  NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
-DEF VAR hf-file-num-f   AS INT  NO-UNDO. // procedure "p-search-text"               
-DEF VAR hf-fertig       AS LOG  NO-UNDO INIT NO. // procedure "p-search-text, p-search-file-or-folder"
+DEF VAR hf-new-path        AS CHAR NO-UNDO INIT "". // Triggers "btn-back, btn-search-new" procedur "get-filelist"
+DEF VAR hf-file-path-g     AS CHAR NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
+DEF VAR hf-ext-g           AS CHAR NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
+DEF VAR hf-file-name-g     AS CHAR NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
+DEF VAR hf-file-num        AS INT  NO-UNDO. // procedure "p-search-text, p-search-file-or-folder"
+DEF VAR hf-file-num-f      AS INT  NO-UNDO. // procedure "p-search-text"               
+DEF VAR hf-fertig          AS LOG  NO-UNDO INIT NO. // procedure "p-search-text, p-search-file-or-folder"
+DEF VAR hf-export-choice-g AS INT  NO-UNDO INIT 1. // export variable choice default 1
+DEF VAR hf-kill            AS LOG  NO-UNDO INIT NO. // procedur killer
 
 DEF TEMP-TABLE tt-file-line
    FIELD id AS INT
@@ -53,8 +55,8 @@ DEF TEMP-TABLE tt-gefunden
    FIELD datei-path AS CHAR
    FIELD datei-name AS CHAR
    FIELD wort AS CHAR
-   FIELD linie AS CHAR
-   FIELD linie-num AS INT.
+   FIELD linie-num AS INT
+   FIELD linie AS CHAR.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -73,13 +75,13 @@ DEF TEMP-TABLE tt-gefunden
 /* Standard List Definitions                                            */
 &Scoped-Define ENABLED-OBJECTS progress-bar-1 btn-search i-filen-lw ~
 i-filen-pf l-folder btn-search-new btn-back i-folder i-filter l-filen f-p ~
-f-csv f-file-or-fold f-w f-txt i-text f-r f-all f-text btn-search-text ~
-l-finded t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 ~
-l-label-4 f-error-1 t-finded 
+f-csv f-file-or-fold f-w f-txt i-text f-r f-all f-text r-export ~
+btn-search-text l-finded t-info t-filen l-error-1 l-label-1 l-label-2 ~
+l-error-2 l-label-3 l-label-4 f-error-1 l-label-5 l-label-6 t-finded 
 &Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
 i-filter l-filen f-p f-csv f-file-or-fold f-w f-txt i-text f-r f-all f-text ~
-l-finded t-info l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 l-label-4 ~
-f-error-1 t-finded 
+r-export l-finded t-info l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 ~
+l-label-4 f-error-1 l-label-5 l-label-6 t-finded 
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
@@ -136,6 +138,11 @@ DEFINE SUB-MENU m_Datei
        MENU-ITEM m_Select_Ordner LABEL "&Select Ordner" ACCELERATOR "F3"
        MENU-ITEM m_Schliessen   LABEL "&Schlieáen"     ACCELERATOR "F10".
 
+DEFINE SUB-MENU m_Export 
+       MENU-ITEM m_HTML         LABEL "&HTML"         
+       MENU-ITEM m_CSV          LABEL "&CSV"          
+       MENU-ITEM m_TXT          LABEL "TXT"           .
+
 DEFINE SUB-MENU m_Hilfe 
        MENU-ITEM m_Readme       LABEL "&Readme"        ACCELERATOR "F1"
        RULE
@@ -143,6 +150,7 @@ DEFINE SUB-MENU m_Hilfe
 
 DEFINE MENU MENU-BAR-W-Win MENUBAR
        SUB-MENU  m_Datei        LABEL "&Datei"        
+       SUB-MENU  m_Export       LABEL "&Export"       
        SUB-MENU  m_Hilfe        LABEL "&?"            .
 
 
@@ -153,7 +161,8 @@ DEFINE BUTTON btn-back
 
 DEFINE BUTTON btn-search 
      LABEL "OK" 
-     SIZE 7 BY 1.15.
+     SIZE 7 BY 1.15
+     BGCOLOR 15 .
 
 DEFINE BUTTON btn-search-new 
      LABEL "Search" 
@@ -166,12 +175,12 @@ DEFINE BUTTON btn-search-text
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
      DROP-DOWN-LIST
-     SIZE 27 BY 1 NO-UNDO.
+     SIZE 27 BY .92 NO-UNDO.
 
 DEFINE VARIABLE l-folder AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
      DROP-DOWN-LIST
-     SIZE 27 BY 1 NO-UNDO.
+     SIZE 27 BY .92 NO-UNDO.
 
 DEFINE VARIABLE l-finded AS CHARACTER 
      VIEW-AS EDITOR NO-WORD-WRAP SCROLLBAR-HORIZONTAL SCROLLBAR-VERTICAL
@@ -219,6 +228,14 @@ DEFINE VARIABLE l-label-4 AS CHARACTER FORMAT "X(256)":U INITIAL "Wort:"
       VIEW-AS TEXT 
      SIZE 12 BY .62 NO-UNDO.
 
+DEFINE VARIABLE l-label-5 AS CHARACTER FORMAT "X(256)":U INITIAL "Filter:" 
+      VIEW-AS TEXT 
+     SIZE 12 BY .62 NO-UNDO.
+
+DEFINE VARIABLE l-label-6 AS CHARACTER FORMAT "X(256)":U INITIAL "Export:" 
+      VIEW-AS TEXT 
+     SIZE 12 BY .62 NO-UNDO.
+
 DEFINE VARIABLE t-filen AS CHARACTER FORMAT "X(256)":U 
      LABEL "Folder path" 
       VIEW-AS TEXT 
@@ -246,6 +263,13 @@ DEFINE VARIABLE f-text AS INTEGER INITIAL 2
           "Gleiches", 1,
 "Match", 2
      SIZE 22 BY .81 NO-UNDO.
+
+DEFINE VARIABLE r-export AS LOGICAL 
+     VIEW-AS RADIO-SET HORIZONTAL
+     RADIO-BUTTONS 
+          "Nein", No,
+"Ja", Yes
+     SIZE 23 BY .81 NO-UNDO.
 
 DEFINE RECTANGLE progress-bar-1
      EDGE-PIXELS 2 GRAPHIC-EDGE  NO-FILL   
@@ -318,8 +342,9 @@ DEFINE FRAME F-Main
      f-r AT ROW 8.15 COL 56 WIDGET-ID 24
      f-all AT ROW 8.15 COL 63 WIDGET-ID 30
      f-text AT ROW 9.35 COL 15 NO-LABEL WIDGET-ID 52
-     btn-search-text AT ROW 10.46 COL 13.72 WIDGET-ID 48
-     l-finded AT ROW 12.23 COL 1.14 NO-LABEL WIDGET-ID 56
+     r-export AT ROW 10.69 COL 15 NO-LABEL WIDGET-ID 72
+     btn-search-text AT ROW 12.88 COL 13.72 WIDGET-ID 48
+     l-finded AT ROW 14.38 COL 1.14 NO-LABEL WIDGET-ID 56
      t-info AT ROW 1.31 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
      t-filen AT ROW 2.81 COL 10.86 COLON-ALIGNED WIDGET-ID 8
      l-error-1 AT ROW 4.35 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 42
@@ -329,13 +354,15 @@ DEFINE FRAME F-Main
      l-label-3 AT ROW 7 COL 1 NO-LABEL WIDGET-ID 70
      l-label-4 AT ROW 8.31 COL 1 NO-LABEL WIDGET-ID 68
      f-error-1 AT ROW 9 COL 54 COLON-ALIGNED NO-LABEL WIDGET-ID 46
-     t-finded AT ROW 9.5 COL 41.14 NO-LABEL WIDGET-ID 62
-     progress-bar-1 AT ROW 10.46 COL 41.14 WIDGET-ID 64
-     progress-bar-2 AT ROW 10.5 COL 41.29 WIDGET-ID 66
+     l-label-5 AT ROW 9.5 COL 1 NO-LABEL WIDGET-ID 76
+     l-label-6 AT ROW 10.77 COL 1 NO-LABEL WIDGET-ID 78
+     t-finded AT ROW 11.92 COL 41.14 NO-LABEL WIDGET-ID 62
+     progress-bar-1 AT ROW 12.88 COL 41.14 WIDGET-ID 64
+     progress-bar-2 AT ROW 12.92 COL 41.29 WIDGET-ID 66
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COL 2.43 ROW 1.35
-         SIZE 79.43 BY 18.88 WIDGET-ID 100.
+         SIZE 79.43 BY 20.77 WIDGET-ID 100.
 
 
 /* *********************** Procedure Settings ************************ */
@@ -355,7 +382,7 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
   CREATE WINDOW C-Win ASSIGN
          HIDDEN             = YES
          TITLE              = "File Finder"
-         HEIGHT             = 19
+         HEIGHT             = 23.12
          WIDTH              = 82
          MAX-HEIGHT         = 39.15
          MAX-WIDTH          = 274.29
@@ -452,6 +479,16 @@ ASSIGN
    ALIGN-L                                                              */
 ASSIGN 
        l-label-4:READ-ONLY IN FRAME F-Main        = TRUE.
+
+/* SETTINGS FOR FILL-IN l-label-5 IN FRAME F-Main
+   ALIGN-L                                                              */
+ASSIGN 
+       l-label-5:READ-ONLY IN FRAME F-Main        = TRUE.
+
+/* SETTINGS FOR FILL-IN l-label-6 IN FRAME F-Main
+   ALIGN-L                                                              */
+ASSIGN 
+       l-label-6:READ-ONLY IN FRAME F-Main        = TRUE.
 
 /* SETTINGS FOR RECTANGLE progress-bar-2 IN FRAME F-Main
    NO-ENABLE                                                            */
@@ -961,6 +998,50 @@ END.
 &ANALYZE-RESUME
 
 
+&Scoped-define SELF-NAME m_CSV
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_CSV C-Win
+ON CHOOSE OF MENU-ITEM m_CSV /* CSV */
+DO:
+   ASSIGN 
+      hf-export-choice-g    = 2.   
+   MENU-ITEM m_HTML:SENSITIVE IN MENU m_Export  = TRUE.
+   MENU-ITEM m_CSV:SENSITIVE IN MENU m_Export   = FALSE.
+   MENU-ITEM m_TXT:SENSITIVE IN MENU m_Export   = TRUE.
+   MENU-ITEM m_HTML:LABEL IN MENU m_Export      = "&HTML".
+   MENU-ITEM m_CSV:LABEL IN MENU m_Export       = "&CSV    Selected".
+   MENU-ITEM m_TXT:LABEL IN MENU m_Export       = "&TXT".
+   DO WITH FRAME {&FRAME-NAME}: 
+      ASSIGN 
+         r-export:SCREEN-VALUE = "YES".
+   END.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME m_HTML
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_HTML C-Win
+ON CHOOSE OF MENU-ITEM m_HTML /* HTML */
+DO:
+   ASSIGN 
+      hf-export-choice-g    = 1. 
+   MENU-ITEM m_HTML:SENSITIVE IN MENU m_Export  = FALSE.
+   MENU-ITEM m_CSV:SENSITIVE IN MENU m_Export   = TRUE.
+   MENU-ITEM m_TXT:SENSITIVE IN MENU m_Export   = TRUE.
+   MENU-ITEM m_HTML:LABEL IN MENU m_Export      = "&HTML   Selected".
+   MENU-ITEM m_CSV:LABEL IN MENU m_Export       = "&CSV".
+   MENU-ITEM m_TXT:LABEL IN MENU m_Export       = "&TXT".   
+   DO WITH FRAME {&FRAME-NAME}: 
+      ASSIGN 
+         r-export:SCREEN-VALUE = "YES".
+   END.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define SELF-NAME m_Readme
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Readme C-Win
 ON CHOOSE OF MENU-ITEM m_Readme /* Readme */
@@ -1006,6 +1087,69 @@ END.
 &ANALYZE-RESUME
 
 
+&Scoped-define SELF-NAME m_TXT
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_TXT C-Win
+ON CHOOSE OF MENU-ITEM m_TXT /* TXT */
+DO:
+   ASSIGN 
+      hf-export-choice-g    = 3.
+   MENU-ITEM m_HTML:SENSITIVE IN MENU m_Export  = TRUE.
+   MENU-ITEM m_CSV:SENSITIVE IN MENU m_Export   = TRUE.
+   MENU-ITEM m_TXT:SENSITIVE IN MENU m_Export   = FALSE.   
+   MENU-ITEM m_HTML:LABEL IN MENU m_Export      = "&HTML".
+   MENU-ITEM m_CSV:LABEL IN MENU m_Export       = "&CSV".
+   MENU-ITEM m_TXT:LABEL IN MENU m_Export       = "&TXT    Selected".
+   DO WITH FRAME {&FRAME-NAME}: 
+      ASSIGN 
+         r-export:SCREEN-VALUE = "YES".
+   END.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME r-export
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL r-export C-Win
+ON VALUE-CHANGED OF r-export IN FRAME F-Main
+DO:
+   IF SELF:SCREEN-VALUE = "yes"  THEN DO:  
+      MENU-ITEM m_HTML:SENSITIVE IN MENU m_Export  = TRUE.
+      MENU-ITEM m_CSV:SENSITIVE IN MENU m_Export   = TRUE.
+      MENU-ITEM m_TXT:SENSITIVE IN MENU m_Export   = TRUE.
+      MENU-ITEM m_HTML:LABEL IN MENU m_Export      = "&HTML".
+      MENU-ITEM m_CSV:LABEL IN MENU m_Export       = "&CSV".
+      MENU-ITEM m_TXT:LABEL IN MENU m_Export       = "&TXT".
+      
+      CASE hf-export-choice-g:
+         WHEN 1 THEN DO:    
+            MENU-ITEM m_HTML:SENSITIVE IN MENU m_Export  = FALSE.
+            MENU-ITEM m_HTML:LABEL IN MENU m_Export      = "&HTML   Selected".   
+         END.
+         WHEN 2 THEN DO:
+            MENU-ITEM m_CSV:SENSITIVE IN MENU m_Export  = FALSE.
+            MENU-ITEM m_CSV:LABEL IN MENU m_Export      = "&CSV   Selected".
+         END.
+         WHEN 3 THEN DO: 
+            MENU-ITEM m_TXT:SENSITIVE IN MENU m_Export  = FALSE.
+            MENU-ITEM m_TXT:LABEL IN MENU m_Export      = "&TXT   Selected".
+         END.
+      END CASE.
+   END.
+   ELSE DO:
+      MENU-ITEM m_HTML:SENSITIVE IN MENU m_Export  = FALSE.
+      MENU-ITEM m_CSV:SENSITIVE IN MENU m_Export   = FALSE.
+      MENU-ITEM m_TXT:SENSITIVE IN MENU m_Export   = FALSE.
+      MENU-ITEM m_HTML:LABEL IN MENU m_Export      = "&HTML".
+      MENU-ITEM m_CSV:LABEL IN MENU m_Export       = "&CSV".
+      MENU-ITEM m_TXT:LABEL IN MENU m_Export       = "&TXT".
+   END.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
 &Scoped-define SELF-NAME t-filen
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL t-filen C-Win
 ON MOUSE-SELECT-CLICK OF t-filen IN FRAME F-Main /* Folder path */
@@ -1044,17 +1188,19 @@ ASSIGN CURRENT-WINDOW                = {&WINDOW-NAME}
        THIS-PROCEDURE:CURRENT-WINDOW = {&WINDOW-NAME}.
        
 DEFINE VARIABLE hf-w AS INTEGER     NO-UNDO.
-   DEFINE VARIABLE hf-h AS INTEGER     NO-UNDO.
-   RUN get-screen-size.
-   IF hf-w > {&WINDOW-NAME}:WIDTH-PIXELS AND hf-h > {&WINDOW-NAME}:HEIGHT-PIXELS THEN   
-      ASSIGN   
-         {&WINDOW-NAME}:X = (hf-w / 2) - ({&WINDOW-NAME}:WIDTH-PIXELS / 2 ) 
-         {&WINDOW-NAME}:Y = (hf-h / 2) - ({&WINDOW-NAME}:HEIGHT-PIXELS / 2 ).
-   ELSE  
-      ASSIGN   
-         {&WINDOW-NAME}:X = 0 
-         {&WINDOW-NAME}:Y = 0.       
-       
+DEFINE VARIABLE hf-h AS INTEGER     NO-UNDO.
+RUN get-screen-size.
+IF hf-w > {&WINDOW-NAME}:WIDTH-PIXELS AND hf-h > {&WINDOW-NAME}:HEIGHT-PIXELS THEN   
+   ASSIGN   
+      {&WINDOW-NAME}:X = (hf-w / 2) - ({&WINDOW-NAME}:WIDTH-PIXELS / 2 ) 
+      {&WINDOW-NAME}:Y = (hf-h / 2) - ({&WINDOW-NAME}:HEIGHT-PIXELS / 2 ).
+ELSE  
+   ASSIGN   
+      {&WINDOW-NAME}:X = 0 
+      {&WINDOW-NAME}:Y = 0.       
+
+ASSIGN   
+   {&WINDOW-NAME}:HEIGHT-PIXEL = 94.       
 
 /* The CLOSE event can be used from inside or outside the procedure to  */
 /* terminate it.                                                        */
@@ -1096,9 +1242,7 @@ DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
          l-finded:HIDDEN = TRUE
          progress-bar-1:HIDDEN = TRUE
          progress-bar-2:HIDDEN = TRUE.
-      
-      ASSIGN   
-         {&WINDOW-NAME}:HEIGHT-PIXEL = 94.   
+         
      
      
      
@@ -1143,15 +1287,15 @@ PROCEDURE enable_UI :
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
   DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-p f-csv 
-          f-file-or-fold f-w f-txt i-text f-r f-all f-text l-finded t-info 
-          l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 l-label-4 f-error-1 
-          t-finded 
+          f-file-or-fold f-w f-txt i-text f-r f-all f-text r-export l-finded 
+          t-info l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 l-label-4 
+          f-error-1 l-label-5 l-label-6 t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
   ENABLE progress-bar-1 btn-search i-filen-lw i-filen-pf l-folder 
          btn-search-new btn-back i-folder i-filter l-filen f-p f-csv 
-         f-file-or-fold f-w f-txt i-text f-r f-all f-text btn-search-text 
-         l-finded t-info t-filen l-error-1 l-label-1 l-label-2 l-error-2 
-         l-label-3 l-label-4 f-error-1 t-finded 
+         f-file-or-fold f-w f-txt i-text f-r f-all f-text r-export 
+         btn-search-text l-finded t-info t-filen l-error-1 l-label-1 l-label-2 
+         l-error-2 l-label-3 l-label-4 f-error-1 l-label-5 l-label-6 t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
   VIEW C-Win.
@@ -1172,7 +1316,6 @@ DO WITH FRAME {&FRAME-NAME}:
    DEFINE VARIABLE firstdpplpkt  AS INT   NO-UNDO.
    DEFINE VARIABLE lastbackslash AS INT   NO-UNDO.
    DEFINE VARIABLE found-file    AS LOG   NO-UNDO.
-
 
    SYSTEM-DIALOG GET-DIR cFile
       TITLE "Select File"
@@ -1273,7 +1416,6 @@ DO WITH FRAME {&FRAME-NAME}:
                   ASSIGN       
                      l-folder:SCREEN-VALUE = cFileStream
                      hf-first-folder = YES 
-                     //btn-back:HIDDEN = FALSE
                      btn-search-new:HIDDEN = FALSE
                      l-folder:HIDDEN = FALSE
                      l-label-1:HIDDEN = FALSE
@@ -1308,23 +1450,21 @@ DO WITH FRAME {&FRAME-NAME}:
       END.
       IF LENGTH(t-filen:SCREEN-VALUE) > 3  THEN
          ASSIGN
-            btn-back:HIDDEN = FALSE.
-      
+            btn-back:HIDDEN = FALSE.         
+      ASSIGN
+         btn-search-text:HIDDEN = FALSE
+         f-file-or-fold:HIDDEN = FALSE
+         i-text:HIDDEN = FALSE
+         f-text:HIDDEN = FALSE
+         l-finded:HIDDEN = FALSE.     
+      ASSIGN   
+         {&WINDOW-NAME}:HEIGHT-PIXELS = 540.
    END.
    ELSE DO:
       ASSIGN 
          t-info:HIDDEN = FALSE
          t-info:SCREEN-VALUE = "Select folder first".  
-   END.
-   ASSIGN
-      btn-search-text:HIDDEN = FALSE
-      f-file-or-fold:HIDDEN = FALSE
-      i-text:HIDDEN = FALSE
-      f-text:HIDDEN = FALSE
-      l-finded:HIDDEN = FALSE.
-   
-      ASSIGN   
-         {&WINDOW-NAME}:HEIGHT-PIXELS = 491.    
+   END.    
 END.
 END PROCEDURE.
 
@@ -1485,12 +1625,19 @@ DO WITH FRAME {&FRAME-NAME}:
             hf-file-path-g = t-filen:SCREEN-VALUE + "~\" + ENTRY(iLoop,hf-file-path,",")
             hf-ext-g = DYNAMIC-FUNCTION('f-get-ext':U,hf-file-path-g ).                  
          IF DYNAMIC-FUNCTION('f-progressBar':U, iLoop, iNumEntries) THEN
-            RUN p-search-text.  
+            RUN p-search-text .  
       END.
     END.
       
 END.
-RUN p-to-html.
+CASE hf-export-choice-g:
+   WHEN 1 THEN
+      RUN p-to-html.
+   WHEN 2 THEN  
+      RUN p-to-csv.
+   WHEN 3 THEN  
+      RUN p-to-txt.
+END CASE.
 EMPTY TEMP-TABLE tt-gefunden NO-ERROR. // reset the table if we have
 END PROCEDURE.
 
@@ -1525,7 +1672,7 @@ DO WITH FRAME {&FRAME-NAME}:
      COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "utf-8" NO-ERROR.
    ELSE
      COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "iso8859-1" NO-ERROR.
-
+   
    DO hf-i = 1 TO LENGTH(hf-text):
       ASSIGN 
          hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
@@ -1603,7 +1750,50 @@ DO WITH FRAME {&FRAME-NAME}:
             hf-line = hf-line  + 1
             hf-start = NO.
    END.
-END.         
+END.
+END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-to-csv C-Win 
+PROCEDURE p-to-csv :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+
+   DEF VAR hf-num AS INT NO-UNDO INIT 0.
+   DEF VAR hf-old AS CHAR NO-UNDO INIT "".
+   DEF VAR save-path AS CHAR NO-UNDO.
+   
+   ASSIGN
+      save-path = "C:~\temp~\tableau-fichier.csv".
+   OUTPUT TO VALUE(save-path) NO-CONVERT.
+   PUT UNFORMATTED "Nø;Path;Name;Wort;L Nø;Linie" SKIP.
+   
+   FOR EACH tt-gefunden :
+      IF tt-gefunden.datei-path <> hf-old THEN DO:
+         ASSIGN hf-num = hf-num + 1.
+         EXPORT DELIMITER ";" hf-num tt-gefunden.datei-path tt-gefunden.datei-name tt-gefunden.wort tt-gefunden.linie-num tt-gefunden.linie.
+      END.
+      ELSE 
+         EXPORT DELIMITER ";" "" "" "" tt-gefunden.wort tt-gefunden.linie-num tt-gefunden.linie.
+      ASSIGN hf-old = tt-gefunden.datei-path.  
+   END.
+   
+   OUTPUT CLOSE.
+   MESSAGE "Der Job ist fertig" SKIP 
+         "und in einer csv-Datei gespeichert." SKIP
+         "Wollen Sie die Datei ”ffnen?"
+       VIEW-AS ALERT-BOX QUESTION BUTTONS YES-NO
+       TITLE "Fertig -> .csv" UPDATE lChoice AS LOGICAL.
+     CASE lChoice:
+       WHEN TRUE THEN /* Yes */ DO:            
+          OS-COMMAND SILENT VALUE("start " + save-path).
+       END.
+     END CASE.    
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1836,10 +2026,11 @@ PROCEDURE p-to-html :
 
    OUTPUT CLOSE.
    // When the job is finished, you will be asked to open the output file. 
-   MESSAGE "Der Job ist fertig" SKIP(1)
-       "Wollen Sie die Datei ”ffnen?"
+   MESSAGE "Der Job ist fertig" SKIP
+         "und in einer html-Datei gespeichert." SKIP
+         "Wollen Sie die Datei ”ffnen?"
        VIEW-AS ALERT-BOX QUESTION BUTTONS YES-NO
-       TITLE "" UPDATE lChoice AS LOGICAL.
+       TITLE "Fertig -> .html" UPDATE lChoice AS LOGICAL.
      CASE lChoice:
        WHEN TRUE THEN /* Yes */ DO:            
           OS-COMMAND SILENT VALUE("start " + save-path).
@@ -1849,6 +2040,41 @@ END PROCEDURE.
 /* DO WITH FRAME {&FRAME-NAME}: */
 /*                              */
 /* END.                         */
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE p-to-txt C-Win 
+PROCEDURE p-to-txt :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+
+   DEF VAR save-path AS CHAR NO-UNDO.
+   DEF VAR hf-temp   AS CHAR NO-UNDO.
+   DEF VAR hf-old    AS CHAR NO-UNDO.
+   
+   ASSIGN
+      save-path = "C:~\temp~\tableau-fichier.txt".
+   OUTPUT TO VALUE(save-path) NO-CONVERT.
+   FOR EACH tt-gefunden :
+      PUT UNFORMATTED tt-gefunden.datei-path "," tt-gefunden.datei-name "," tt-gefunden.wort "," tt-gefunden.linie-num "," tt-gefunden.linie SKIP.
+   END.
+   
+   OUTPUT CLOSE.
+   MESSAGE "Der Job ist fertig" SKIP 
+         "und in einer txt-Datei gespeichert." SKIP
+         "Wollen Sie die Datei ”ffnen?"
+       VIEW-AS ALERT-BOX QUESTION BUTTONS YES-NO
+       TITLE "Fertig -> .txt" UPDATE lChoice AS LOGICAL.
+     CASE lChoice:
+       WHEN TRUE THEN /* Yes */ DO:            
+          OS-COMMAND SILENT VALUE("start " + save-path).
+       END.
+     END CASE.    
+END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
