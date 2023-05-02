@@ -134,10 +134,10 @@ DEFINE VAR C-Win AS WIDGET-HANDLE NO-UNDO.
 /* Menu Definitions                                                     */
 DEFINE SUB-MENU m_Datei 
        MENU-ITEM m_Select_Ordner LABEL "&Select Ordner" ACCELERATOR "F3"
-       MENU-ITEM m_Schliessen   LABEL "&Schlieáen"    .
+       MENU-ITEM m_Schliessen   LABEL "&Schlieáen"     ACCELERATOR "F10".
 
 DEFINE SUB-MENU m_Hilfe 
-       MENU-ITEM m_Readme       LABEL "&Readme"       
+       MENU-ITEM m_Readme       LABEL "&Readme"        ACCELERATOR "F1"
        RULE
        MENU-ITEM m_Autor        LABEL "&Autor"        .
 
