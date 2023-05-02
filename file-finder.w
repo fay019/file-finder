@@ -358,9 +358,9 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
          HEIGHT             = 19
          WIDTH              = 82
          MAX-HEIGHT         = 39.15
-         MAX-WIDTH          = 274.14
+         MAX-WIDTH          = 274.29
          VIRTUAL-HEIGHT     = 39.15
-         VIRTUAL-WIDTH      = 274.14
+         VIRTUAL-WIDTH      = 274.29
          RESIZE             = yes
          SCROLL-BARS        = no
          STATUS-AREA        = no
@@ -1506,20 +1506,19 @@ PROCEDURE p-search-text :
 ------------------------------------------------------------------------------*/
 DO WITH FRAME {&FRAME-NAME}:
    
-   DEF VAR hf-start      AS LOG      NO-UNDO INIT NO.
-   DEF VAR hf-file-start AS LOG      NO-UNDO INIT YES.
-   DEF VAR hf-i          AS INT      NO-UNDO.
-   DEF VAR hf-line       AS INT      NO-UNDO.
-   DEF VAR hf-text       AS LONGCHAR NO-UNDO.
-   DEF VAR hf-char       AS CHAR     NO-UNDO.
-   DEF VAR hf-word       AS CHAR     NO-UNDO.
-   DEF VAR hf-word-line  AS CHAR     NO-UNDO.
-   DEF VAR hf-temp  AS CHAR     NO-UNDO.
+   DEF VAR hf-start           AS LOG      NO-UNDO INIT NO.
+   DEF VAR hf-file-start      AS LOG      NO-UNDO INIT YES.
+   DEF VAR hf-i               AS INT      NO-UNDO.
+   DEF VAR hf-line            AS INT      NO-UNDO.
+   DEF VAR hf-text            AS LONGCHAR NO-UNDO.
+   DEF VAR hf-char            AS CHAR     NO-UNDO.
+   DEF VAR hf-word            AS CHAR     NO-UNDO.
+   DEF VAR hf-temp            AS CHAR     NO-UNDO.
+   DEF VAR hf-matches-helper  AS CHAR     NO-UNDO.
    ASSIGN
       hf-line = 1
       hf-text = ""
-      hf-word = ""
-      hf-word-line = "".    
+      hf-word = "".    
       
    RUN p-file-to-table.
    IF hf-ext-g <> "p" AND  hf-ext-g <> "w" AND  hf-ext-g <> "r" THEN
@@ -1531,27 +1530,33 @@ DO WITH FRAME {&FRAME-NAME}:
       ASSIGN 
          hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
        // Charachter counter
-      IF hf-start = NO AND  hf-char <> " "  THEN DO:  // first char of word
+/*       MESSAGE  ///////////////////////////////////////////////////////////////////// */
+/*          "hf-char: " hf-char " -- " ASC(hf-char) SKIP                                */
+/*          "hf-start: " hf-start SKIP                                                  */
+/*          "hf-word: " hf-word SKIP                                                    */
+/*          "hf-line: " hf-line SKIP                                                    */
+/*          VIEW-AS ALERT-BOX TITLE "1".                                                */
+      IF hf-start = NO AND ( hf-char <> " " OR  hf-char = "~n" ) THEN DO:  // first char of word
          ASSIGN
             hf-word = hf-char
             hf-start = YES.
       END.
-      ELSE IF hf-start = YES AND hf-char <> " "  THEN DO:  // next char in word
+      ELSE IF hf-start = YES AND ( hf-char <> " " OR  hf-char = "~n" ) THEN DO:  // next char in word
          ASSIGN
             hf-word = hf-word + hf-char.
       END.
-      ELSE IF hf-start = YES AND hf-char <> " "  THEN DO:   // hier I have my word
+      ELSE IF hf-start = YES AND ( hf-char = " " OR  hf-char = "~n" )  THEN DO:   // hier I have my word
          ASSIGN
             hf-start = NO.
       END.
-      IF hf-char <> "~n" THEN 
-         ASSIGN hf-word-line = hf-word-line + hf-char.
-      ELSE
-         ASSIGN 
-            hf-line = hf-line  + 1
-            hf-word-line = "".   
-      IF hf-char = "~n" OR hf-char = " " THEN DO: // Line counter 
-         IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "1" AND hf-word = i-text:SCREEN-VALUE THEN DO:  
+
+      IF SUBSTRING(i-text:SCREEN-VALUE, 1, 1) = "*" OR  SUBSTRING(i-text:SCREEN-VALUE, 1, 1) = "." THEN 
+         ASSIGN hf-matches-helper = "*~~" + i-text:SCREEN-VALUE + "*". // Take into consideration "*" and ".
+      ELSE   
+         ASSIGN hf-matches-helper = "*" + i-text:SCREEN-VALUE + "*". // No matter what the word begins or ends with
+         
+      IF hf-char = "~n" OR hf-char = " " THEN DO: // Line counter      
+         IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "1" AND hf-word = i-text:SCREEN-VALUE THEN DO: //f-text -> 1 is only selected File 
             IF hf-file-start THEN DO: 
                ASSIGN
                   hf-file-start = NO 
@@ -1568,11 +1573,10 @@ DO WITH FRAME {&FRAME-NAME}:
             ASSIGN hf-word = "". 
                
          END.
-         ELSE IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "2" AND hf-word MATCHES ( "*" + i-text:SCREEN-VALUE + "*") THEN DO: 
-            // MESSAGE "File: " hf-file-path-g SKIP hf-file-name-g SKIP hf-ext-g VIEW-AS ALERT-BOX. 
+         ELSE IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "2" AND hf-word MATCHES ( hf-matches-helper ) THEN DO:  //f-text -> 2 is all Files selected in order || * ->  indicates that any group of characters is acceptable
             IF hf-file-start THEN DO: 
                ASSIGN 
-                  hf-file-start = NO      
+                  hf-file-start = NO
                   hf-file-num-f = hf-file-num-f + 1.
                l-finded:INSERT-STRING("File Name: " + hf-file-name-g + "  Nø: " + STRING(hf-file-num-f) + "~n").
                l-finded:INSERT-STRING( "************************************~n").
@@ -1580,39 +1584,26 @@ DO WITH FRAME {&FRAME-NAME}:
             l-finded:INSERT-STRING( "Word: " + hf-word + "~n"). 
             FIND FIRST tt-file-line WHERE tt-file-line.id = hf-line NO-LOCK NO-ERROR.
             IF AVAILABLE tt-file-line THEN DO:
-               // remouve the last char if is an line brack, and make a trim
-/*                IF (SUBSTRING(hf-word, LENGTH(hf-word), 1) = CHR(10)) THEN DO: */
-/*                   ASSIGN                                                      */
-/*                      hf-word = SUBSTRING(hf-word, 1, LENGTH(hf-word) - 1)     */
-/*                      hf-word = TRIM(hf-word)                                  */
-/*                      hf-word = TRIM(hf-word, "<>,.;:!? ~"~ '[]()")            */
-/*                      hf-word = REPLACE(hf-word, "<", "")                      */
-/*                      hf-word = REPLACE(hf-word, ">", "")                      */
-/*                      hf-word = REPLACE(hf-word, "~~n", "")                    */
-/*                      hf-word = TRIM(hf-word).                                 */
-/*                END.                                                           */
                CREATE tt-gefunden.
                ASSIGN
                   tt-gefunden.datei-path = hf-file-path-g    
                   tt-gefunden.datei-name = hf-file-name-g
-                  //tt-gefunden.wort  = TRIM(hf-word, "<>,.;:!? ~"~ '[]()")
-                  tt-gefunden.wort  = hf-word
+                  hf-word = TRIM(hf-word) // remove blank and Line break
+                  tt-gefunden.wort  = TRIM(hf-word, "<>,.;:!? ~"~ '[]()") // rempve all this char at first and last position after vwe remov blank or line breaker
                   tt-gefunden.linie-num  = tt-file-line.id    
-                  //tt-gefunden.linie = REPLACE(tt-file-line.txt, "`", ""). // for not make confusion in html output
                   tt-gefunden.linie = tt-file-line.txt. 
                l-finded:INSERT-STRING( STRING(tt-file-line.id) + "=> " + tt-file-line.txt + "~n" ).    
             END.
-            l-finded:INSERT-STRING( "-----------------------------------------~n").                
+            l-finded:INSERT-STRING( "-----------------------------------------~n").
          END.           
          ASSIGN hf-word = "". 
-      END.
+      END.       
+      IF hf-char = "~n" THEN 
+         ASSIGN 
+            hf-line = hf-line  + 1
+            hf-start = NO.
    END.
-END.   
-/* IF iLoop = hf-file-num THEN                                                                              */
-/*    ASSIGN                                                                                                */
-/*       l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "--------------- Fertig ---------------"           */
-/*       l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(hf-file-num-f) + "/" + STRING(hf-file-num). */
-      
+END.         
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1642,6 +1633,7 @@ PROCEDURE p-to-html :
    OUTPUT TO VALUE(save-path) CONVERT SOURCE "ISO8859-1" TARGET "UTF-8". 
    
    ASSIGN  hf-i  = 0.
+   // html head
    ASSIGN p-head = "<!DOCTYPE html>~n
 <html lang=~"de~">~n
    <head>~n
@@ -1741,7 +1733,7 @@ PROCEDURE p-to-html :
    ~});  ~n
 </script>~n".
 
-
+   // Script for search table 
    ASSIGN p-search = "function searchTable() ~{~n
   var input, filter, table, tr, td, i, j, txtValue; ~n
   input = document.getElementById(~"searchInput~");~n
@@ -1810,9 +1802,9 @@ PROCEDURE p-to-html :
    END.
 
    PUT UNFORMATTED "</table>~n".
-   //PUT UNFORMATTED p-script.
    
    PUT UNFORMATTED "<script>~n".
+   // make it in json format too.
    PUT UNFORMATTED "const data = [~n".
    FOR EACH tt-gefunden :
       ASSIGN 
