@@ -37,6 +37,7 @@ Search for text in the selected file.
 - [x]  - creat procedure text-in-file
 - [x]  - creat procedure to-HTML file
 - [x]  - add Menu and Sub-Menu
+- [x]  - add export choice (html, csv, txt)
 - [x]  - create filter
 - [ ]  - test
 - [ ]  - complate the readme.md
