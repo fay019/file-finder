@@ -76,9 +76,9 @@ DEF TEMP-TABLE tt-gefunden
 &Scoped-define FRAME-NAME F-Main
 
 /* Standard List Definitions                                            */
-&Scoped-Define ENABLED-OBJECTS progress-bar-1 btn-search i-filen-lw ~
-i-filen-pf l-folder btn-search-new btn-back i-folder i-filter l-filen f-p ~
-f-csv f-file-or-fold f-w f-txt i-text f-r f-all f-text r-export i-export ~
+&Scoped-Define ENABLED-OBJECTS progress-bar-1 i-filen-lw i-filen-pf ~
+l-folder btn-search-new btn-back i-folder i-filter l-filen f-p f-csv ~
+f-file-or-fold f-w f-txt i-text f-r f-all f-text r-export i-export ~
 btn-confirm e-filen-lw e-filen-pf e-filen btn-search-text l-finded t-info ~
 l-label-0 t-filen l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 ~
 l-label-4 f-error-1 l-label-5 l-label-6 l-label-7 w-filen t-finded 
@@ -195,15 +195,20 @@ DEFINE BUTTON btn-search-text
      LABEL "Suche" 
      SIZE 23 BY 1.
 
+DEFINE VARIABLE i-filen-lw AS CHARACTER FORMAT "X(256)":U 
+     VIEW-AS COMBO-BOX INNER-LINES 5
+     DROP-DOWN-LIST
+     SIZE 5 BY .92 NO-UNDO.
+
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
      DROP-DOWN-LIST
-     SIZE 27 BY .92 NO-UNDO.
+     SIZE 27 BY 1 NO-UNDO.
 
 DEFINE VARIABLE l-folder AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
      DROP-DOWN-LIST
-     SIZE 27 BY .92 NO-UNDO.
+     SIZE 27 BY 1 NO-UNDO.
 
 DEFINE VARIABLE l-finded AS CHARACTER 
      VIEW-AS EDITOR NO-WORD-WRAP SCROLLBAR-HORIZONTAL SCROLLBAR-VERTICAL
@@ -226,13 +231,9 @@ DEFINE VARIABLE f-error-1 AS CHARACTER FORMAT "X(256)":U
      SIZE 24 BY .62
      FGCOLOR 12  NO-UNDO.
 
-DEFINE VARIABLE i-filen-lw AS CHARACTER FORMAT "X(256)":U 
-     VIEW-AS FILL-IN 
-     SIZE 3 BY 1 NO-UNDO.
-
 DEFINE VARIABLE i-filen-pf AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS FILL-IN 
-     SIZE 50 BY 1 NO-UNDO.
+     SIZE 48 BY .92 NO-UNDO.
 
 DEFINE VARIABLE i-text AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS FILL-IN 
@@ -248,7 +249,7 @@ DEFINE VARIABLE l-error-2 AS CHARACTER FORMAT "X(256)":U
 
 DEFINE VARIABLE l-label-0 AS CHARACTER FORMAT "X(256)":U INITIAL "Folder path:" 
       VIEW-AS TEXT 
-     SIZE 11 BY .62 NO-UNDO.
+     SIZE 10.86 BY .62 NO-UNDO.
 
 DEFINE VARIABLE l-label-1 AS CHARACTER FORMAT "X(256)":U INITIAL "List of Folder:" 
       VIEW-AS TEXT 
@@ -379,8 +380,8 @@ DEFINE VARIABLE i-folder AS LOGICAL INITIAL yes
 
 DEFINE FRAME F-Main
      btn-search AT ROW 2.54 COL 67.43 WIDGET-ID 10
-     i-filen-lw AT ROW 2.62 COL 10.86 COLON-ALIGNED NO-LABEL WIDGET-ID 2
-     i-filen-pf AT ROW 2.62 COL 14 COLON-ALIGNED NO-LABEL WIDGET-ID 4
+     i-filen-lw AT ROW 2.62 COL 10.86 COLON-ALIGNED NO-LABEL WIDGET-ID 100
+     i-filen-pf AT ROW 2.62 COL 16 COLON-ALIGNED NO-LABEL WIDGET-ID 4
      l-folder AT ROW 4.19 COL 13.57 NO-LABEL WIDGET-ID 12
      btn-search-new AT ROW 4.19 COL 42 WIDGET-ID 38
      btn-back AT ROW 4.19 COL 52 WIDGET-ID 40
@@ -403,9 +404,9 @@ DEFINE FRAME F-Main
      e-filen-pf AT ROW 11.92 COL 17.29 NO-LABEL WIDGET-ID 88
      e-filen AT ROW 11.92 COL 48 COLON-ALIGNED NO-LABEL WIDGET-ID 84
      btn-search-text AT ROW 14.19 COL 13.72 WIDGET-ID 48
-     l-finded AT ROW 15.69 COL 1.14 NO-LABEL WIDGET-ID 56
+     l-finded AT ROW 15.69 COL 1.43 NO-LABEL WIDGET-ID 56
      t-info AT ROW 1.31 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
-     l-label-0 AT ROW 2.81 COL 1 NO-LABEL WIDGET-ID 94
+     l-label-0 AT ROW 2.81 COL 1.43 NO-LABEL WIDGET-ID 94
      t-filen AT ROW 2.81 COL 10.86 COLON-ALIGNED NO-LABEL WIDGET-ID 8
      l-error-1 AT ROW 4.35 COL 13 COLON-ALIGNED NO-LABEL WIDGET-ID 42
      l-label-1 AT ROW 4.38 COL 1 NO-LABEL WIDGET-ID 34
@@ -444,13 +445,13 @@ IF SESSION:DISPLAY-TYPE = "GUI":U THEN
   CREATE WINDOW C-Win ASSIGN
          HIDDEN             = YES
          TITLE              = "File Finder"
-         HEIGHT             = 22.92
-         WIDTH              = 82
+         HEIGHT             = 22.62
+         WIDTH              = 82.43
          MAX-HEIGHT         = 39.15
          MAX-WIDTH          = 274.29
          VIRTUAL-HEIGHT     = 39.15
          VIRTUAL-WIDTH      = 274.29
-         RESIZE             = yes
+         RESIZE             = no
          SCROLL-BARS        = no
          STATUS-AREA        = no
          BGCOLOR            = ?
@@ -476,6 +477,11 @@ ASSIGN {&WINDOW-NAME}:MENUBAR    = MENU MENU-BAR-W-Win:HANDLE.
    FRAME-NAME                                                           */
 ASSIGN 
        btn-back:HIDDEN IN FRAME F-Main           = TRUE.
+
+/* SETTINGS FOR BUTTON btn-search IN FRAME F-Main
+   NO-ENABLE                                                            */
+ASSIGN 
+       btn-search:HIDDEN IN FRAME F-Main           = TRUE.
 
 ASSIGN 
        btn-search-new:HIDDEN IN FRAME F-Main           = TRUE.
@@ -745,7 +751,7 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search C-Win
 ON CHOOSE OF btn-search IN FRAME F-Main /* OK */
 DO:
-   IF t-filen:SCREEN-VALUE <> "" THEN DO: 
+   IF i-filen-pf:SCREEN-VALUE <> "" AND t-filen:SCREEN-VALUE <> "" THEN DO: 
       ASSIGN
          i-filen-lw:HIDDEN = TRUE
          i-filen-pf:HIDDEN = TRUE
@@ -822,7 +828,7 @@ END.
 
 &Scoped-define SELF-NAME e-filen-lw
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL e-filen-lw C-Win
-ON ANY-KEY OF e-filen-lw IN FRAME F-Main /* File Name */
+ON ANY-KEY OF e-filen-lw IN FRAME F-Main
 DO:
   // color reset if was error befor
   i-filen-lw:SIDE-LABEL-HANDLE:FGCOLOR = 1.
@@ -833,7 +839,7 @@ END.
 
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL e-filen-lw C-Win
-ON MOUSE-SELECT-DBLCLICK OF e-filen-lw IN FRAME F-Main /* File Name */
+ON MOUSE-SELECT-DBLCLICK OF e-filen-lw IN FRAME F-Main
 DO:
   run get-filename.
 END.
@@ -858,14 +864,14 @@ END.
 ON VALUE-CHANGED OF f-all IN FRAME F-Main /* all other */
 DO:
    // RUN p-check-filter.
-   DYNAMIC-FUNCTION('f-check-filter':U).
-   DYNAMIC-FUNCTION('f-check-path':U).    
-   IF NOT f-check-path() THEN DO:
+   //DYNAMIC-FUNCTION('f-check-filter':U).
+   //DYNAMIC-FUNCTION('f-check-path':U).    
+   IF NOT DYNAMIC-FUNCTION('f-check-path':U) THEN DO:
       RUN get-filelist.
       ASSIGN SELF:SCREEN-VALUE = "yes".
       LEAVE.
    END.
-   IF f-check-filter() THEN DO:
+   IF DYNAMIC-FUNCTION('f-check-filter':U) THEN DO:
       ASSIGN 
          SELF:SCREEN-VALUE = "yes"
          f-error-1:HIDDEN = FALSE
@@ -1063,30 +1069,18 @@ END.
 &ANALYZE-RESUME
 
 
-&Scoped-define SELF-NAME i-filen-lw
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-lw C-Win
-ON MOUSE-SELECT-DBLCLICK OF i-filen-lw IN FRAME F-Main /* Folder path */
-DO:
-   t-info:HIDDEN = TRUE.
-   RUN get-dirname.
-END.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
-
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-lw C-Win
-ON VALUE-CHANGED OF i-filen-lw IN FRAME F-Main /* Folder path */
+&Scoped-define SELF-NAME i-filen-pf
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-pf C-Win
+ON LEAVE OF i-filen-pf IN FRAME F-Main
 DO:
    ASSIGN 
-      btn-search:HIDDEN = FALSE.
+      t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":~\" + i-filen-pf:SCREEN-VALUE. 
 END.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 
-&Scoped-define SELF-NAME i-filen-pf
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-pf C-Win
 ON MOUSE-SELECT-DBLCLICK OF i-filen-pf IN FRAME F-Main
 DO:   
@@ -1101,8 +1095,23 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-pf C-Win
 ON VALUE-CHANGED OF i-filen-pf IN FRAME F-Main
 DO:
-   ASSIGN 
-      btn-search:HIDDEN = FALSE.
+   FILE-INFO:FILE-NAME = i-filen-lw:SCREEN-VALUE + ":~\" + SELF:SCREEN-VALUE.
+   
+   IF FILE-INFO:FULL-PATHNAME EQ ? THEN DO:  
+       ASSIGN
+         btn-search:HIDDEN = TRUE
+         t-info:HIDDEN = FALSE
+         t-info:SCREEN-VALUE = "Dieses Verzeichnis existiert nicht.".
+   END.
+   ELSE DO:
+      ENABLE btn-search WITH FRAME F-Main.
+      ASSIGN 
+         t-info:HIDDEN = TRUE
+         t-info:SCREEN-VALUE = ""
+         btn-search:HIDDEN = FALSE.
+   END.
+   
+   
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1381,7 +1390,7 @@ END.
 
 &Scoped-define SELF-NAME t-filen
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL t-filen C-Win
-ON MOUSE-SELECT-CLICK OF t-filen IN FRAME F-Main /* Folder path */
+ON MOUSE-SELECT-CLICK OF t-filen IN FRAME F-Main
 DO:
   SELF:HIDDEN = TRUE.
   ASSIGN 
@@ -1394,7 +1403,7 @@ END.
 
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL t-filen C-Win
-ON MOUSE-SELECT-DBLCLICK OF t-filen IN FRAME F-Main /* Folder path */
+ON MOUSE-SELECT-DBLCLICK OF t-filen IN FRAME F-Main
 DO:
 /*   SELF:HIDDEN = TRUE.        */
 /*   i-filen-lw:HIDDEN = FALSE. */
@@ -1408,7 +1417,7 @@ END.
 
 &Scoped-define SELF-NAME w-filen
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL w-filen C-Win
-ON MOUSE-SELECT-CLICK OF w-filen IN FRAME F-Main /* File Name */
+ON MOUSE-SELECT-CLICK OF w-filen IN FRAME F-Main
 DO:   
    ASSIGN        
       SELF:HIDDEN = TRUE  
@@ -1464,39 +1473,39 @@ MAIN-BLOCK:
 DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
    ON END-KEY UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK:
       RUN enable_UI.
-   
-   ASSIGN 
-      t-filen:HIDDEN = TRUE
-      l-filen:HIDDEN = TRUE
-      l-folder:HIDDEN = TRUE
-      l-label-1:HIDDEN = TRUE
-      l-label-2:HIDDEN = TRUE
-      f-p:HIDDEN = TRUE
-      f-w:HIDDEN = TRUE
-      f-r:HIDDEN = TRUE
-      f-csv:HIDDEN = TRUE
-      f-txt:HIDDEN = TRUE
-      f-all:HIDDEN = TRUE
-      btn-search-new:HIDDEN = TRUE
-      btn-back:HIDDEN = TRUE
-      l-error-1:HIDDEN = TRUE
-      l-error-2:HIDDEN = TRUE
-      f-error-1:HIDDEN = TRUE
-      t-info:HIDDEN = TRUE 
-      btn-search-text:HIDDEN = TRUE
-      f-file-or-fold:HIDDEN = TRUE
-      i-text:HIDDEN = TRUE
-      f-text:HIDDEN = TRUE
-      l-finded:HIDDEN = TRUE
-      progress-bar-1:HIDDEN = TRUE
-      progress-bar-2:HIDDEN = TRUE
-      i-export:HIDDEN = TRUE 
-      e-filen-lw:HIDDEN = TRUE
-      e-filen-pf:HIDDEN = TRUE
-      e-filen:HIDDEN = TRUE
-      w-filen:HIDDEN = TRUE
-      l-label-7:HIDDEN = TRUE   
-      btn-confirm:HIDDEN = TRUE.   
+      RUN get-drivers.
+      ASSIGN 
+         t-filen:HIDDEN = TRUE
+         l-filen:HIDDEN = TRUE
+         l-folder:HIDDEN = TRUE
+         l-label-1:HIDDEN = TRUE
+         l-label-2:HIDDEN = TRUE
+         f-p:HIDDEN = TRUE
+         f-w:HIDDEN = TRUE
+         f-r:HIDDEN = TRUE
+         f-csv:HIDDEN = TRUE
+         f-txt:HIDDEN = TRUE
+         f-all:HIDDEN = TRUE
+         btn-search-new:HIDDEN = TRUE
+         btn-back:HIDDEN = TRUE
+         l-error-1:HIDDEN = TRUE
+         l-error-2:HIDDEN = TRUE
+         f-error-1:HIDDEN = TRUE
+         t-info:HIDDEN = TRUE 
+         btn-search-text:HIDDEN = TRUE
+         f-file-or-fold:HIDDEN = TRUE
+         i-text:HIDDEN = TRUE
+         f-text:HIDDEN = TRUE
+         l-finded:HIDDEN = TRUE
+         progress-bar-1:HIDDEN = TRUE
+         progress-bar-2:HIDDEN = TRUE
+         i-export:HIDDEN = TRUE 
+         e-filen-lw:HIDDEN = TRUE
+         e-filen-pf:HIDDEN = TRUE
+         e-filen:HIDDEN = TRUE
+         w-filen:HIDDEN = TRUE
+         l-label-7:HIDDEN = TRUE   
+         btn-confirm:HIDDEN = TRUE.   
      
 /*       IF NOT THIS-PROCEDURE:PERSISTENT THEN */
 /*          WAIT-FOR CLOSE OF THIS-PROCEDURE.  */
@@ -1543,13 +1552,12 @@ PROCEDURE enable_UI :
           l-finded t-info l-label-0 l-error-1 l-label-1 l-label-2 l-error-2 
           l-label-3 l-label-4 f-error-1 l-label-5 l-label-6 l-label-7 t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
-  ENABLE progress-bar-1 btn-search i-filen-lw i-filen-pf l-folder 
-         btn-search-new btn-back i-folder i-filter l-filen f-p f-csv 
-         f-file-or-fold f-w f-txt i-text f-r f-all f-text r-export i-export 
-         btn-confirm e-filen-lw e-filen-pf e-filen btn-search-text l-finded 
-         t-info l-label-0 t-filen l-error-1 l-label-1 l-label-2 l-error-2 
-         l-label-3 l-label-4 f-error-1 l-label-5 l-label-6 l-label-7 w-filen 
-         t-finded 
+  ENABLE progress-bar-1 i-filen-lw i-filen-pf l-folder btn-search-new btn-back 
+         i-folder i-filter l-filen f-p f-csv f-file-or-fold f-w f-txt i-text 
+         f-r f-all f-text r-export i-export btn-confirm e-filen-lw e-filen-pf 
+         e-filen btn-search-text l-finded t-info l-label-0 t-filen l-error-1 
+         l-label-1 l-label-2 l-error-2 l-label-3 l-label-4 f-error-1 l-label-5 
+         l-label-6 l-label-7 w-filen t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
   {&OPEN-BROWSERS-IN-QUERY-F-Main}
   VIEW C-Win.
@@ -1570,9 +1578,10 @@ DO WITH FRAME {&FRAME-NAME}:
    DEFINE VARIABLE firstdpplpkt  AS INT   NO-UNDO.
    DEFINE VARIABLE lastbackslash AS INT   NO-UNDO.
    DEFINE VARIABLE found-file    AS LOG   NO-UNDO.
-
+   
    SYSTEM-DIALOG GET-DIR cFile
-      TITLE "Select File"
+      INITIAL-DIR t-filen:SCREEN-VALUE
+      TITLE "Datei ausw„hlen"
       RETURN-TO-START-DIR
       UPDATE found-file.
    IF found-file THEN DO:
@@ -1580,8 +1589,9 @@ DO WITH FRAME {&FRAME-NAME}:
          t-filen:SCREEN-VALUE = cFile
          firstdpplpkt  =   INDEX (cFile, ":")
          lastbackslash = R-INDEX (cFile, "\").
-      IF firstdpplpkt <> 0 THEN 
+      IF firstdpplpkt <> 0 THEN DO:
          i-filen-lw:SCREEN-VALUE = SUBSTRING(cFile, 1, firstdpplpkt - 1).
+      END.
       ELSE   
          i-filen-lw:SCREEN-VALUE = "".
       IF lastbackslash <> 0 THEN DO:
@@ -1595,8 +1605,42 @@ DO WITH FRAME {&FRAME-NAME}:
          i-filen-pf:HIDDEN = TRUE
          t-filen:HIDDEN    = FALSE
          btn-search:HIDDEN = TRUE.
-   END.      
-   RUN get-filelist.
+   END. 
+   IF t-filen:SCREEN-VALUE <> ? THEN
+      RUN get-filelist.
+END.
+END PROCEDURE.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _PROCEDURE get-drivers C-Win 
+PROCEDURE get-drivers :
+/*------------------------------------------------------------------------------
+  Purpose:     
+  Parameters:  <none>
+  Notes:       
+------------------------------------------------------------------------------*/
+DO WITH FRAME {&FRAME-NAME}:   
+   DEF VAR hf-drivers   AS CHAR  NO-UNDO.
+   DEF VAR hf-char    AS CHAR  NO-UNDO.
+   DEF VAR hf-i     AS INT   NO-UNDO.
+   DEF VAR hf-last      AS INT   NO-UNDO.
+   
+   ASSIGN
+      hf-drivers = OS-DRIVES
+      hf-drivers = REPLACE(hf-drivers, ":", "").
+   
+   DO hf-i = 1 TO NUM-ENTRIES(hf-drivers, ","):
+      ASSIGN
+         hf-char = ENTRY(hf-i, hf-drivers, ",").
+      i-filen-lw:ADD-LAST(hf-char).
+      IF hf-i = 1 THEN
+         ASSIGN       
+            i-filen-lw:SCREEN-VALUE = hf-char. 
+   END.
+   
+  
 END.
 END PROCEDURE.
 
@@ -1624,7 +1668,7 @@ DO WITH FRAME {&FRAME-NAME}:
    l-folder:LIST-ITEMS = "".
    IF hf-new-path = "" THEN
       ASSIGN 
-         cDir = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE.
+         cDir = i-filen-lw:SCREEN-VALUE + ":~\" +  i-filen-pf:SCREEN-VALUE.
    ELSE 
       ASSIGN 
          cDir = hf-new-path. 
