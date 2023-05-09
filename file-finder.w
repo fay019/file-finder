@@ -98,36 +98,40 @@ t-finded
 /* ************************  Function Prototypes ********************** */
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-chang-ext C-Win 
-FUNCTION f-chang-ext RETURNS CHARACTER
-  (INPUT hf-name AS CHAR, INPUT hf-ext AS CHAR )  FORWARD.
+FUNCTION f-chang-ext RETURNS CHARACTER  // Definiert den RÅckgabetyp der Funktion (Zeichenkette)
+
+(INPUT hf-name AS CHAR, INPUT hf-ext AS CHAR)  FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-check-filter C-Win 
-FUNCTION f-check-filter RETURNS LOGICAL
-  ( /* parameter-definitions */ )  FORWARD.
+FUNCTION f-check-filter RETURNS LOGICAL  // Definiert den RÅckgabetyp der Funktion (logisch)
+
+( /* parameter-definitions */ )  FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-check-path C-Win 
-FUNCTION f-check-path RETURNS LOGICAL
-  (  )  FORWARD.
+FUNCTION f-check-path RETURNS LOGICAL  // Definiert den RÅckgabetyp der Funktion (logisch)
+( /* parameter-definitions */ )  FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-get-ext C-Win 
-FUNCTION f-get-ext RETURNS CHARACTER
-  (INPUT hf-name AS CHAR )  FORWARD.
+FUNCTION f-get-ext RETURNS CHARACTER  // Definiert den RÅckgabetyp der Funktion (Zeichenkette)
+
+(INPUT hf-name AS CHAR)  FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-in-array C-Win 
-FUNCTION f-in-array RETURNS LOGICAL
-  (INPUT hf-word AS CHAR, INPUT lists AS CHAR EXTENT )  FORWARD.
+FUNCTION f-in-array RETURNS LOGICAL  // Definiert den RÅckgabetyp der Funktion (logischer Wert)
+
+(INPUT hf-word AS CHAR, INPUT lists AS CHAR EXTENT)  FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -2116,7 +2120,6 @@ DO WITH FRAME {&FRAME-NAME}:
    DEF VAR hf-text            AS LONGCHAR NO-UNDO.
    DEF VAR hf-char            AS CHAR     NO-UNDO.
    DEF VAR hf-word            AS CHAR     NO-UNDO.
-   DEF VAR hf-temp            AS CHAR     NO-UNDO.
    DEF VAR hf-matches-helper  AS CHAR     NO-UNDO.
    ASSIGN
       hf-line = 1
@@ -2206,8 +2209,8 @@ DO WITH FRAME {&FRAME-NAME}:
             hf-line = hf-line  + 1
             hf-start = NO.
    END.
+   // For the last Line if it is no empty.
    IF hf-word <> "" THEN DO:   
-      MESSAGE "hallo ici la" VIEW-AS ALERT-BOX.
       IF SUBSTRING(i-text:SCREEN-VALUE, 1, 1) = "*" OR  SUBSTRING(i-text:SCREEN-VALUE, 1, 1) = "." THEN 
          ASSIGN hf-matches-helper = "*~~" + i-text:SCREEN-VALUE + "*". // Take into consideration "*" and ".
       ELSE   
@@ -2587,113 +2590,133 @@ END PROCEDURE.
 /* ************************  Function Implementations ***************** */
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-chang-ext C-Win 
-FUNCTION f-chang-ext RETURNS CHARACTER
-  (INPUT hf-name AS CHAR, INPUT hf-ext AS CHAR ) :
+FUNCTION f-chang-ext RETURNS CHARACTER  // Definiert den RÅckgabetyp der Funktion (Zeichenkette)
+
+(INPUT hf-name AS CHAR, INPUT hf-ext AS CHAR) :  // Definiert zwei Eingabeparameter: "hf-name" vom Typ Zeichenkette und "hf-ext" vom Typ Zeichenkette
+
 /*------------------------------------------------------------------------------
   Purpose:  
     Notes:  
-------------------------------------------------------------------------------*/
-   DEF VAR lastpkt   AS INT NO-UNDO.
-   DEF VAR hf-result AS CHAR NO-UNDO.
-   
+------------------------------------------------------------------------------*/ 
+
+   DEF VAR lastpkt AS INT NO-UNDO.  // Deklariert eine Variable "lastpkt" vom Typ Integer und initialisiert sie mit dem Wert 0
+   DEF VAR hf-result AS CHAR NO-UNDO.  // Deklariert eine Variable "hf-result" vom Typ Zeichenkette
+
    ASSIGN 
-      lastpkt = R-INDEX (hf-name, ".").
-   IF lastpkt <> 0 THEN
+      lastpkt = R-INDEX(hf-name, ".").  // Weist "lastpkt" den Wert der Position des letzten Vorkommens von "." in "hf-name" zu
+   IF lastpkt <> 0 THEN  // PrÅft, ob "." in "hf-name" vorhanden ist
       ASSIGN 
-         hf-result = SUBSTRING(hf-name, 1, lastpkt) + hf-ext.
+         hf-result = SUBSTRING(hf-name, 1, lastpkt) + hf-ext.  // Weist "hf-result" den Wert von "hf-name" bis zur Position von "." (inklusive) und "hf-ext" zu
    ELSE   
-      ASSIGN hf-result = hf-name + "." + hf-ext.
+      ASSIGN hf-result = hf-name + "." + hf-ext.  // Weist "hf-result" den Wert von "hf-name", "." und "hf-ext" zu
       
-   RETURN hf-result.
-END FUNCTION.
+   RETURN hf-result.  // Gibt "hf-result" zurÅck
+END FUNCTION.  // Beendet die Funktion
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-check-filter C-Win 
-FUNCTION f-check-filter RETURNS LOGICAL
-  ( /* parameter-definitions */ ) :
+FUNCTION f-check-filter RETURNS LOGICAL  // Definiert den RÅckgabetyp der Funktion (logisch)
+
+( /* parameter-definitions */ ) :  // Definiert keine Eingabeparameter
+
 /*------------------------------------------------------------------------------
   Purpose:  
-    Notes: check only if all firter is un checked   
+    Nur prÅfen, wenn alles zuerst deaktiviert ist
 ------------------------------------------------------------------------------*/
-DO WITH FRAME {&FRAME-NAME}:  
-   DEF VAR hf-count-f AS INT NO-UNDO. 
-   ASSIGN hf-count-f = 0.
-   IF f-p:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
-   IF f-w:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
-   IF f-r:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
-   IF f-csv:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
-   IF f-txt:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1. 
-   IF f-all:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1.  
-   IF hf-count-f > 5 THEN DO:  
-      RETURN TRUE. 
+
+DO WITH FRAME {&FRAME-NAME}:  // ôffnet ein Fenster, in dem die Funktion ausgefÅhrt wird
+
+   DEF VAR hf-count-f AS INT NO-UNDO.  // Deklariert eine Variable "hf-count-f" vom Typ Integer und initialisiert sie mit dem Wert 0
+   ASSIGN hf-count-f = 0.  // Weist "hf-count-f" den Wert 0 zu
+   IF f-p:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1.  // PrÅft, ob der Filter "f-p" deaktiviert ist, und erhîht den Wert von "hf-count-f" entsprechend
+   IF f-w:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1.  // PrÅft, ob der Filter "f-w" deaktiviert ist, und erhîht den Wert von "hf-count-f" entsprechend
+   IF f-r:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1.  // PrÅft, ob der Filter "f-r" deaktiviert ist, und erhîht den Wert von "hf-count-f" entsprechend
+   IF f-csv:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1.  // PrÅft, ob der Filter "f-csv" deaktiviert ist, und erhîht den Wert von "hf-count-f" entsprechend
+   IF f-txt:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1.  // PrÅft, ob der Filter "f-txt" deaktiviert ist, und erhîht den Wert von "hf-count-f" entsprechend
+   IF f-all:SCREEN-VALUE = "no" THEN ASSIGN hf-count-f = hf-count-f + 1.  // PrÅft, ob der Filter "f-all" deaktiviert ist, und erhîht den Wert von "hf-count-f" entsprechend
+
+   IF hf-count-f > 5 THEN DO:  // PrÅft, ob alle Filter deaktiviert sind
+      RETURN TRUE.  // Gibt "TRUE" zurÅck, wenn alle Filter deaktiviert sind
    END.
-   RETURN FALSE. 
-END.
-END FUNCTION.
+   RETURN FALSE.  // Gibt "FALSE" zurÅck, wenn nicht alle Filter deaktiviert sind
+
+END.  // Schlie·t das Fenster
+END FUNCTION.  // Beendet die Funktion
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-check-path C-Win 
-FUNCTION f-check-path RETURNS LOGICAL
-  (  ) :
+FUNCTION f-check-path RETURNS LOGICAL  // Definiert den RÅckgabetyp der Funktion (logisch)
+( /* parameter-definitions */ ) :  // Definiert keine Eingabeparameter
 /*------------------------------------------------------------------------------
   Purpose:  
     Notes: check only if all firter is un checked   
 ------------------------------------------------------------------------------*/
-DO WITH FRAME {&FRAME-NAME}:
+DO WITH FRAME {&FRAME-NAME}:  // ôffnet ein Fenster, in dem die Funktion ausgefÅhrt wird
    
+   // öberprÅfen, ob der Wert von t-filen:SCREEN-VALUE ungleich "?" und "" und ":" ist.
    IF t-filen:SCREEN-VALUE <> ? AND t-filen:SCREEN-VALUE <> "" AND t-filen:SCREEN-VALUE <> ":" THEN DO:  
-      RETURN TRUE. 
+      RETURN TRUE. // Wenn die Bedingung wahr ist, dann TRUE zurÅckgeben, 
    END.
    ELSE 
-      RETURN FALSE.
-END.   
-END FUNCTION.
+      RETURN FALSE. // Wenn die Bedingung wahr ist, dann FALSE zurÅckgeben.
+
+END.  // Schlie·t das Fenster
+END FUNCTION.  // Beendet die Funktion
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-get-ext C-Win 
-FUNCTION f-get-ext RETURNS CHARACTER
-  (INPUT hf-name AS CHAR ) :
+FUNCTION f-get-ext RETURNS CHARACTER  // Definiert den RÅckgabetyp der Funktion (Zeichenkette)
+
+(INPUT hf-name AS CHAR) : // Definiert parameter: "hf-name" vom Typ Zeichenkette
+
 /*------------------------------------------------------------------------------
-  Purpose:  
-    Notes:  
+   Purpose:Ermittelt die Dateityp-Extension fÅr eine Datei aus dem Dateinamen.
+
+   Notes: Der RÅckgabewert ist der Teil des Dateinamens, der nach dem letzten 
+   Punkt (".") kommt. 
+   Wenn der Dateiname kein Punkt enthÑlt, wird ein leerer String zurÅckgegeben.
 ------------------------------------------------------------------------------*/
-   DEF VAR lastpkt   AS INT NO-UNDO.
-   DEF VAR hf-result AS CHAR NO-UNDO.
+   DEF VAR lastpkt AS INT NO-UNDO.  // Deklariert eine Variable "lastpkt" vom Typ Integer und initialisiert sie mit dem Wert 0
+   DEF VAR hf-result AS CHAR NO-UNDO.  // Deklariert eine Variable "hf-result" vom Typ Zeichenkette
    
    ASSIGN 
-      lastpkt = R-INDEX (hf-name, ".").
-   IF lastpkt <> 0 THEN
-      ASSIGN hf-result = SUBSTRING(hf-name, lastpkt + 1).
+      lastpkt = R-INDEX(hf-name, ".").  // Weist "lastpkt" den Wert der Position des letzten Vorkommens von "." in "hf-name" zu
+   IF lastpkt <> 0 THEN // PrÅft, ob "." in "hf-name" vorhanden ist
+      ASSIGN hf-result = SUBSTRING(hf-name, lastpkt + 1). // Weist "hf-result" die Zeichenfolge zu, die nach dem letzten Punkt "."
    ELSE   
-      ASSIGN hf-result =  "".      
-   RETURN hf-result.
-END FUNCTION.
+      ASSIGN hf-result =  "". //Setzen Sie "hf-result" auf eine leere Zeichenfolge   
+   RETURN hf-result.  // Gibt "hf-result" zurÅck
+END FUNCTION.  // Beendet die Funktion
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-in-array C-Win 
-FUNCTION f-in-array RETURNS LOGICAL
-  (INPUT hf-word AS CHAR, INPUT lists AS CHAR EXTENT ) :
+FUNCTION f-in-array RETURNS LOGICAL  // Definiert den RÅckgabetyp der Funktion (logischer Wert)
+
+(INPUT hf-word AS CHAR, INPUT lists AS CHAR EXTENT) :  // Definiert zwei Eingabeparameter: "hf-word" vom Typ Zeichenkette und "lists" vom Typ Zeichenkette-Array
+
 /*------------------------------------------------------------------------------
   Purpose:  
     Notes:  
-------------------------------------------------------------------------------*/
-   DEF VAR i AS INT NO-UNDO.
-   
-   DO i = 1 TO  EXTENT(lists) :
-      IF hf-word = lists[i] THEN
-         RETURN TRUE.
-   END.   
-   RETURN FALSE.
+------------------------------------------------------------------------------*/ 
+   // Kommentarbereich, in dem der Zweck der Funktion und sonstige Notizen angegeben werden kînnen
 
-END FUNCTION.
+   DEF VAR i AS INT NO-UNDO.  // Deklariert eine Variable "i" vom Typ Integer und initialisiert sie mit dem Wert 1
+
+   DO i = 1 TO EXTENT(lists):  // Schleife, die von 1 bis zur LÑnge des "lists"-Arrays lÑuft
+      IF hf-word = lists[i] THEN  // PrÅft, ob der aktuelle Wert von "lists" mit "hf-word" Åbereinstimmt
+         RETURN TRUE.  // Gibt TRUE zurÅck, wenn die Bedingung erfÅllt ist, und beendet die Funktion
+   END.   
+   RETURN FALSE.  // Gibt FALSE zurÅck, wenn "hf-word" nicht in "lists" enthalten ist
+
+END FUNCTION.  // Beendet die Funktion
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
