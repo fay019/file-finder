@@ -1984,40 +1984,57 @@ PROCEDURE p-file-to-table :
 ------------------------------------------------------------------------------*/
 
 DO WITH FRAME {&FRAME-NAME}:
-   DEF VAR hf-i AS INT NO-UNDO INIT 0.
-   DEF VAR hf-saut AS INT NO-UNDO INIT 0.
-   DEF VAR hf-file-path AS CHAR NO-UNDO.
-   DEF VAR hf-temp-txt AS CHAR NO-UNDO.
+   DEF VAR hf-i         AS INT      NO-UNDO.
+   DEF VAR hf-line      AS INT      NO-UNDO.
+   DEF VAR hf-temp-txt  AS CHAR     NO-UNDO.
+   DEF VAR hf-text      AS LONGCHAR NO-UNDO.
+   DEF VAR hf-char      AS CHAR     NO-UNDO.
+   
+   
+   
+   IF hf-ext-g <> "p" AND  hf-ext-g <> "w" AND  hf-ext-g <> "r" THEN
+     COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "utf-8" NO-ERROR.
+   ELSE
+     COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "iso8859-1" NO-ERROR.
    
    EMPTY TEMP-TABLE tt-file-line NO-ERROR. // reset the table if we have 
-   
-   INPUT FROM VALUE(hf-file-path-g) CONVERT SOURCE "UTF-8".
-   REPEAT TRANSACTION:
-      IMPORT DELIMITER "~n" hf-temp-txt. 
-      CREATE tt-file-line.
-/*                                                    */
-/*                                                    */
-/*       IF SUBSTRING(hf-temp-txt, 1, 1) = "~n" THEN  */
-/*          ASSIGN hf-saut = hf-saut + 1.             */
-      ASSIGN   
-         hf-i = hf-i + 1
-         tt-file-line.id = hf-i.
-      IF LENGTH(hf-temp-txt) > 200  THEN   
-         ASSIGN tt-file-line.txt = SUBSTRING(hf-temp-txt, 1, 200) + "...".
-      ELSE
-         ASSIGN tt-file-line.txt = SUBSTRING(hf-temp-txt, 1, 200). 
-         
-         
-/*       MESSAGE "1er :" SUBSTRING(hf-temp-txt, 1, 2) SKIP */
-/*               "I: " hf-i                                */
-/*          VIEW-AS ALERT-BOX.                             */
+   ASSIGN 
+      hf-line = 0
+      hf-temp-txt = "".
+   DO hf-i = 1 TO LENGTH(hf-text):
+      ASSIGN hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
+      IF hf-char <> CHR(13)  THEN
+         ASSIGN hf-temp-txt = hf-temp-txt + hf-char.
+      ELSE DO: 
+        // MESSAGE "text :" hf-temp-txt VIEW-AS ALERT-BOX. 
+         CREATE tt-file-line.
+         ASSIGN   
+            hf-i = hf-i + 1
+            hf-line = hf-line + 1
+            tt-file-line.id = hf-line.
+         IF LENGTH(hf-temp-txt) > 200  THEN   
+            ASSIGN tt-file-line.txt = SUBSTRING(hf-temp-txt, 1, 200) + "...".
+         ELSE IF LENGTH(hf-temp-txt) <= 200 AND LENGTH(hf-temp-txt) > 1 THEN
+            ASSIGN tt-file-line.txt = hf-temp-txt.    
+         ELSE
+            ASSIGN tt-file-line.txt = " ".
+         ASSIGN hf-temp-txt = "".  
+      END.
    END.
-   OUTPUT CLOSE. 
-/*    MESSAGE "Nombre d'enregistrements dans le temp-table : " hf-i SKIP */
-/*          hf-saut                                                      */
-/*          VIEW-AS ALERT-BOX.                                           */
-/*    FIND FIRST  tt-file-line WHERE tt-file-line.id = 2 NO-ERROR.       */
-/*       MESSAGE  "txt: " tt-file-line.txt VIEW-AS ALERT-BOX.            */
+   IF hf-temp-txt <> "" THEN DO:
+      CREATE tt-file-line.
+         ASSIGN   
+            hf-i = hf-i + 1
+            hf-line = hf-line + 1
+            tt-file-line.id = hf-line
+            tt-file-line.txt = hf-temp-txt.
+   END.
+/*    MESSAGE "Nombre d'enregistrements dans le temp-table : " hf-line SKIP */
+/*          VIEW-AS ALERT-BOX.                                              */
+/*    FIND LAST tt-file-line NO-ERROR.                                      */
+/*    MESSAGE  "txt: " tt-file-line.txt VIEW-AS ALERT-BOX.                  */
+   
+
 
 END. 
 END PROCEDURE.
@@ -2111,7 +2128,7 @@ DO WITH FRAME {&FRAME-NAME}:
      COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "utf-8" NO-ERROR.
    ELSE
      COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "iso8859-1" NO-ERROR.
-   
+   ASSIGN hf-file-path-g = replace( replace( hf-file-path-g, '~n', '' ), '~r', '' ).
    DO hf-i = 1 TO LENGTH(hf-text):
       ASSIGN 
          hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
@@ -2189,6 +2206,65 @@ DO WITH FRAME {&FRAME-NAME}:
             hf-line = hf-line  + 1
             hf-start = NO.
    END.
+   IF hf-word <> "" THEN DO:   
+      MESSAGE "hallo ici la" VIEW-AS ALERT-BOX.
+      IF SUBSTRING(i-text:SCREEN-VALUE, 1, 1) = "*" OR  SUBSTRING(i-text:SCREEN-VALUE, 1, 1) = "." THEN 
+         ASSIGN hf-matches-helper = "*~~" + i-text:SCREEN-VALUE + "*". // Take into consideration "*" and ".
+      ELSE   
+         ASSIGN hf-matches-helper = "*" + i-text:SCREEN-VALUE + "*". // No matter what the word begins or ends with
+         
+      //IF hf-char = "~n" OR hf-char = " " THEN DO: // Line counter      
+         IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "1" AND hf-word = i-text:SCREEN-VALUE THEN DO: //f-text -> 1 is only selected File 
+            IF hf-file-start THEN DO: 
+               ASSIGN
+                  hf-file-start = NO 
+                  hf-file-num-f = hf-file-num-f + 1
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "File Name: " + hf-file-name-g + "~n"
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "************************************~n".
+            END.
+            ASSIGN
+               l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "Word: " + hf-word + "  Nø: " + STRING(hf-file-num-f) + "~n". 
+               FOR EACH tt-file-line WHERE tt-file-line.id = hf-line NO-LOCK:
+                  l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + STRING(tt-file-line.id) + "=> " + tt-file-line.txt + "~n".   
+               END. 
+               l-finded:SCREEN-VALUE = l-finded:SCREEN-VALUE + "-----------------------------------------~n".
+            ASSIGN hf-word = "". 
+               
+         END.
+         ELSE IF i-text:SCREEN-VALUE <> "" AND f-text:SCREEN-VALUE = "2" AND hf-word MATCHES ( hf-matches-helper ) THEN DO:  //f-text -> 2 is all Files selected in order || * ->  indicates that any group of characters is acceptable
+            IF hf-file-start THEN DO: 
+               ASSIGN 
+                  hf-file-start = NO
+                  hf-file-num-f = hf-file-num-f + 1.
+               l-finded:INSERT-STRING("File Name: " + hf-file-name-g + "  Nø: " + STRING(hf-file-num-f) + "~n").
+               l-finded:INSERT-STRING( "************************************~n").
+            END.
+            l-finded:INSERT-STRING( "Word: " + hf-word + "~n"). 
+            FIND FIRST tt-file-line WHERE tt-file-line.id = hf-line NO-LOCK NO-ERROR.
+            IF AVAILABLE tt-file-line THEN DO:
+               CREATE tt-gefunden.
+               ASSIGN
+                  tt-gefunden.datei-path = hf-file-path-g    
+                  tt-gefunden.datei-name = hf-file-name-g
+                  hf-word = TRIM(hf-word) // remove blank and Line break
+                  tt-gefunden.wort  = TRIM(hf-word, "<>,.;:!? ~"~ '[]()") // rempve all this char at first and last position after vwe remov blank or line breaker
+                  tt-gefunden.linie-num  = tt-file-line.id    
+                  tt-gefunden.linie = tt-file-line.txt. 
+               l-finded:INSERT-STRING( STRING(tt-file-line.id) + "=> " + tt-file-line.txt + "~n" ).    
+            END.
+            l-finded:INSERT-STRING( "-----------------------------------------~n").
+         END.
+      //END.
+         
+/*       MESSAGE "path: " hf-file-path-g SKIP                  */
+/*               "name: " hf-file-name-g SKIP                  */
+/*               "word: " hf-word SKIP                         */
+/*               "line: " hf-line  " -- " tt-file-line.id SKIP */
+/*               "text: " tt-file-line.txt SKIP                */
+/*          VIEW-AS ALERT-BOX.                                 */
+      
+   END.
+   ASSIGN hf-word = "". 
 END.    
 END PROCEDURE.
 
@@ -2306,7 +2382,7 @@ PROCEDURE p-to-html :
    
 
    ASSIGN p-script = "<script>~n
-   const table = document.querySelector('table');~n
+   const table = document.querySelector('Dateifinder, Ergebnistabelle');~n
    const rows = Array.from(table.querySelectorAll('tr'));~n
 
    // Ajouter une classe … la premiŠre cellule de chaque groupe avec le mˆme Path~n
