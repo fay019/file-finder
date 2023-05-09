@@ -198,7 +198,7 @@ DEFINE BUTTON btn-search-text
 DEFINE VARIABLE i-filen-lw AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 5
      DROP-DOWN-LIST
-     SIZE 5 BY .92 NO-UNDO.
+     SIZE 5 BY 1 NO-UNDO.
 
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
@@ -1985,6 +1985,7 @@ PROCEDURE p-file-to-table :
 
 DO WITH FRAME {&FRAME-NAME}:
    DEF VAR hf-i AS INT NO-UNDO INIT 0.
+   DEF VAR hf-saut AS INT NO-UNDO INIT 0.
    DEF VAR hf-file-path AS CHAR NO-UNDO.
    DEF VAR hf-temp-txt AS CHAR NO-UNDO.
    
@@ -1994,16 +1995,31 @@ DO WITH FRAME {&FRAME-NAME}:
    REPEAT TRANSACTION:
       IMPORT DELIMITER "~n" hf-temp-txt. 
       CREATE tt-file-line.
+/*                                                    */
+/*                                                    */
+/*       IF SUBSTRING(hf-temp-txt, 1, 1) = "~n" THEN  */
+/*          ASSIGN hf-saut = hf-saut + 1.             */
       ASSIGN   
          hf-i = hf-i + 1
          tt-file-line.id = hf-i.
       IF LENGTH(hf-temp-txt) > 200  THEN   
          ASSIGN tt-file-line.txt = SUBSTRING(hf-temp-txt, 1, 200) + "...".
       ELSE
-         ASSIGN tt-file-line.txt = SUBSTRING(hf-temp-txt, 1, 200).
+         ASSIGN tt-file-line.txt = SUBSTRING(hf-temp-txt, 1, 200). 
+         
+         
+/*       MESSAGE "1er :" SUBSTRING(hf-temp-txt, 1, 2) SKIP */
+/*               "I: " hf-i                                */
+/*          VIEW-AS ALERT-BOX.                             */
    END.
    OUTPUT CLOSE. 
-END.
+/*    MESSAGE "Nombre d'enregistrements dans le temp-table : " hf-i SKIP */
+/*          hf-saut                                                      */
+/*          VIEW-AS ALERT-BOX.                                           */
+/*    FIND FIRST  tt-file-line WHERE tt-file-line.id = 2 NO-ERROR.       */
+/*       MESSAGE  "txt: " tt-file-line.txt VIEW-AS ALERT-BOX.            */
+
+END. 
 END PROCEDURE.
 
 /* _UIB-CODE-BLOCK-END */
@@ -2090,7 +2106,7 @@ DO WITH FRAME {&FRAME-NAME}:
       hf-text = ""
       hf-word = "".    
       
-   RUN p-file-to-table.
+   RUN p-file-to-table.   
    IF hf-ext-g <> "p" AND  hf-ext-g <> "w" AND  hf-ext-g <> "r" THEN
      COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "utf-8" NO-ERROR.
    ELSE
@@ -2246,6 +2262,7 @@ PROCEDURE p-to-html :
 <html lang=~"de~">~n
    <head>~n
       <meta charset=~"utf-8~">
+      <meta name=~"viewport~" content=~"width=device-width, initial-scale=1.0~">
       <title>Tableau</title>~n
       <style>~n
          table ~{~n
@@ -2362,9 +2379,6 @@ PROCEDURE p-to-html :
   ~} ~n
 ~}~n".
    
-   
-   
-   
 /*    PUT UNFORMATTED "<html>~n".                 */
 /*    PUT UNFORMATTED "<head>~n".                 */
 /*    PUT UNFORMATTED "<title>Tableau</title>~n". */
@@ -2372,8 +2386,8 @@ PROCEDURE p-to-html :
 /*    PUT UNFORMATTED "<body>~n".                 */
    
    PUT UNFORMATTED p-head.
-   PUT UNFORMATTED "<input type=~"text~" id=~"searchInput~">
-<button onclick=~"searchTable()~">Rechercher</button>".
+   PUT UNFORMATTED "<input type=~"text~" id=~"searchInput~" placeholder=~"Search~">
+<button type=~"button~" onclick=~"searchTable()~">OK</button>".
    PUT UNFORMATTED "<table id=~"myTable~">~n".
    PUT UNFORMATTED "<tr>~n<th>Nø</th>~n<th>Path</th>~n<th>Name</th>~n<th>Wort</th>~n<th>L Nø</th>~n<th>Linie</th>~n</tr>~n".
 
@@ -2616,10 +2630,13 @@ FUNCTION f-progressBar RETURNS LOGICAL
     Notes:  
 ------------------------------------------------------------------------------*/
 IF i-loop <= j-loop THEN DO:
-   DO WITH FRAME {&FRAME-NAME}:  
+   DO WITH FRAME {&FRAME-NAME}: 
+      IF ( (( i-loop / j-loop) * 100) * 2) < 1 THEN   
+         ASSIGN progress-bar-2:WIDTH-PIXELS = 1.
+      ELSE   
+         ASSIGN progress-bar-2:WIDTH-PIXELS = (( i-loop / j-loop) * 100) * 2.
       ASSIGN
          progress-bar-2:HIDDEN = FALSE
-         progress-bar-2:WIDTH-PIXELS = (( i-loop / j-loop) * 100) * 2
          progress-bar-2:FILLED = TRUE
          progress-bar-2:BGCOLOR = 10
          t-finded:SCREEN-VALUE = STRING( i-loop) + "/" + STRING(j-loop) + " -- " + STRING( ROUND(( i-loop / j-loop) * 100, 0 )) + "%" .
