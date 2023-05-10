@@ -76,17 +76,16 @@ DEF TEMP-TABLE tt-gefunden
 &Scoped-define FRAME-NAME F-Main
 
 /* Standard List Definitions                                            */
-&Scoped-Define ENABLED-OBJECTS progress-bar-1 i-filen-lw i-filen-pf ~
-l-folder btn-search-new btn-back i-folder i-filter l-filen f-p f-csv ~
-f-file-or-fold f-w f-txt i-text f-r f-all f-text r-export i-export ~
-btn-confirm e-filen-lw e-filen-pf e-filen btn-search-text l-finded t-info ~
-l-label-0 t-filen l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 ~
-l-label-4 f-error-1 l-label-5 l-label-6 l-label-7 w-filen t-finded 
-&Scoped-Define DISPLAYED-OBJECTS i-filen-lw i-filen-pf l-folder i-folder ~
-i-filter l-filen f-p f-csv f-file-or-fold f-w f-txt i-text f-r f-all f-text ~
-r-export i-export l-finded t-info l-label-0 l-error-1 l-label-1 l-label-2 ~
-l-error-2 l-label-3 l-label-4 f-error-1 l-label-5 l-label-6 l-label-7 ~
-t-finded 
+&Scoped-Define ENABLED-OBJECTS progress-bar-1 img-logo btn-start l-folder ~
+btn-search-new btn-back i-folder i-filter l-filen f-p f-csv f-file-or-fold ~
+f-w f-txt i-text f-r f-all f-text r-export i-export btn-confirm e-filen-lw ~
+e-filen-pf e-filen btn-search-text l-finded t-logo t-info t-filen l-error-1 ~
+l-label-1 l-label-2 l-error-2 l-label-3 l-label-4 f-error-1 l-label-5 ~
+l-label-6 l-label-7 w-filen t-finded 
+&Scoped-Define DISPLAYED-OBJECTS l-folder i-folder i-filter l-filen f-p ~
+f-csv f-file-or-fold f-w f-txt i-text f-r f-all f-text r-export i-export ~
+l-finded t-logo t-info l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 ~
+l-label-4 f-error-1 l-label-5 l-label-6 l-label-7 t-finded 
 
 /* Custom List Definitions                                              */
 /* List-1,List-2,List-3,List-4,List-5,List-6                            */
@@ -150,6 +149,13 @@ FUNCTION f-reset-progressBar RETURNS LOGICAL
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD logo-hidden C-Win 
+FUNCTION logo-hidden RETURNS WIDGET-HANDLE
+  ( )  FORWARD.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
 
 /* ***********************  Control Definitions  ********************** */
 
@@ -199,10 +205,14 @@ DEFINE BUTTON btn-search-text
      LABEL "Suche" 
      SIZE 23 BY 1.
 
+DEFINE BUTTON btn-start 
+     LABEL "Start =>" 
+     SIZE 10.57 BY 1.
+
 DEFINE VARIABLE i-filen-lw AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 5
      DROP-DOWN-LIST
-     SIZE 5 BY 1 NO-UNDO.
+     SIZE 5 BY .92 NO-UNDO.
 
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
@@ -296,10 +306,20 @@ DEFINE VARIABLE t-info AS CHARACTER FORMAT "X(256)":U
      SIZE 47 BY 1
      FGCOLOR 12  NO-UNDO.
 
+DEFINE VARIABLE t-logo AS CHARACTER FORMAT "X(256)":U INITIAL "INHOUSE GmbH" 
+      VIEW-AS TEXT 
+     SIZE 17 BY 1.08
+     FONT 0 NO-UNDO.
+
 DEFINE VARIABLE w-filen AS CHARACTER FORMAT "X(256)":U 
       VIEW-AS TEXT 
      SIZE 56.86 BY .62
      FONT 6 NO-UNDO.
+
+DEFINE IMAGE img-logo
+     FILENAME "H:\DPW_TEST\FM_Test\fm\file-finder\logo-inhouse-red.png":U CONVERT-3D-COLORS
+     STRETCH-TO-FIT RETAIN-SHAPE
+     SIZE 48.72 BY 3.08.
 
 DEFINE VARIABLE f-file-or-fold AS INTEGER INITIAL 1 
      VIEW-AS RADIO-SET HORIZONTAL
@@ -386,6 +406,7 @@ DEFINE FRAME F-Main
      btn-search AT ROW 2.54 COL 67.43 WIDGET-ID 10
      i-filen-lw AT ROW 2.62 COL 10.86 COLON-ALIGNED NO-LABEL WIDGET-ID 100
      i-filen-pf AT ROW 2.62 COL 16 COLON-ALIGNED NO-LABEL WIDGET-ID 4
+     btn-start AT ROW 2.62 COL 54.57 WIDGET-ID 106
      l-folder AT ROW 4.19 COL 13.57 NO-LABEL WIDGET-ID 12
      btn-search-new AT ROW 4.19 COL 42 WIDGET-ID 38
      btn-back AT ROW 4.19 COL 52 HELP
@@ -410,6 +431,7 @@ DEFINE FRAME F-Main
      e-filen AT ROW 11.92 COL 48 COLON-ALIGNED NO-LABEL WIDGET-ID 84
      btn-search-text AT ROW 14.19 COL 13.72 WIDGET-ID 48
      l-finded AT ROW 15.69 COL 1.43 NO-LABEL WIDGET-ID 56
+     t-logo AT ROW 1.08 COL 50.57 COLON-ALIGNED NO-LABEL WIDGET-ID 108
      t-info AT ROW 1.31 COL 19 COLON-ALIGNED NO-LABEL WIDGET-ID 14
      l-label-0 AT ROW 2.81 COL 1.43 NO-LABEL WIDGET-ID 94
      t-filen AT ROW 2.81 COL 10.86 COLON-ALIGNED NO-LABEL WIDGET-ID 8
@@ -427,6 +449,7 @@ DEFINE FRAME F-Main
      t-finded AT ROW 13.23 COL 41.14 NO-LABEL WIDGET-ID 62
      progress-bar-1 AT ROW 14.19 COL 41.14 WIDGET-ID 64
      progress-bar-2 AT ROW 14.23 COL 41.29 WIDGET-ID 66
+     img-logo AT ROW 1.04 COL 3.29 WIDGET-ID 102
     WITH 1 DOWN NO-BOX KEEP-TAB-ORDER OVERLAY 
          SIDE-LABELS NO-UNDERLINE THREE-D 
          AT COL 2.43 ROW 1.35
@@ -530,6 +553,16 @@ ASSIGN
 ASSIGN 
        i-export:HIDDEN IN FRAME F-Main           = TRUE.
 
+/* SETTINGS FOR COMBO-BOX i-filen-lw IN FRAME F-Main
+   NO-DISPLAY NO-ENABLE                                                 */
+ASSIGN 
+       i-filen-lw:HIDDEN IN FRAME F-Main           = TRUE.
+
+/* SETTINGS FOR FILL-IN i-filen-pf IN FRAME F-Main
+   NO-DISPLAY NO-ENABLE                                                 */
+ASSIGN 
+       i-filen-pf:HIDDEN IN FRAME F-Main           = TRUE.
+
 ASSIGN 
        l-error-1:READ-ONLY IN FRAME F-Main        = TRUE.
 
@@ -552,8 +585,9 @@ ASSIGN
        l-folder:HIDDEN IN FRAME F-Main           = TRUE.
 
 /* SETTINGS FOR FILL-IN l-label-0 IN FRAME F-Main
-   ALIGN-L                                                              */
+   NO-DISPLAY NO-ENABLE ALIGN-L                                         */
 ASSIGN 
+       l-label-0:HIDDEN IN FRAME F-Main           = TRUE
        l-label-0:READ-ONLY IN FRAME F-Main        = TRUE.
 
 /* SETTINGS FOR FILL-IN l-label-1 IN FRAME F-Main
@@ -611,6 +645,9 @@ ASSIGN
 ASSIGN 
        t-info:HIDDEN IN FRAME F-Main           = TRUE
        t-info:READ-ONLY IN FRAME F-Main        = TRUE.
+
+ASSIGN 
+       t-logo:READ-ONLY IN FRAME F-Main        = TRUE.
 
 /* SETTINGS FOR FILL-IN w-filen IN FRAME F-Main
    NO-DISPLAY                                                           */
@@ -753,6 +790,7 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-search C-Win
 ON CHOOSE OF btn-search IN FRAME F-Main /* OK */
 DO:
+
    IF i-filen-pf:SCREEN-VALUE <> "" AND t-filen:SCREEN-VALUE <> "" THEN DO: 
       ASSIGN
          i-filen-lw:HIDDEN = TRUE
@@ -819,6 +857,17 @@ DO:
       DYNAMIC-FUNCTION('f-reset-progressBar':U).
       RUN p-search-file-or-folder.
    END.      
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME btn-start
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL btn-start C-Win
+ON CHOOSE OF btn-start IN FRAME F-Main /* Start => */
+DO:
+  DYNAMIC-FUNCTION('logo-hidden':U).  
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1093,7 +1142,7 @@ END.
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL i-filen-pf C-Win
 ON MOUSE-SELECT-DBLCLICK OF i-filen-pf IN FRAME F-Main
-DO:   
+DO:
    t-info:HIDDEN = TRUE.
    RUN get-dirname.
 END.
@@ -1214,7 +1263,8 @@ END.
 ON CHOOSE OF MENU-ITEM m_Autor /* Autor */
 DO:
    MESSAGE "WKO Inhouse GmbH" SKIP
-           "Wien-" YEAR(TODAY) CHR(169)
+           "Wien-" YEAR(TODAY) CHR(169) SKIP
+           "Version: 1.0.0"
          VIEW-AS ALERT-BOX TITLE "File Finder".
 END.
 
@@ -1241,6 +1291,17 @@ DO:
          i-export:HIDDEN = FALSE.
    END. 
    RUN p-export-block.
+END.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&Scoped-define SELF-NAME m_Export
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Export C-Win
+ON MENU-DROP OF MENU m_Export /* Export */
+DO:
+  DYNAMIC-FUNCTION('logo-hidden':U).  
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1309,7 +1370,8 @@ END.
 &Scoped-define SELF-NAME m_Select_Ordner
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL m_Select_Ordner C-Win
 ON CHOOSE OF MENU-ITEM m_Select_Ordner /* Select Ordner */
-DO:
+DO:   
+  DYNAMIC-FUNCTION('logo-hidden':U).  
   RUN get-dirname.
 END.
 
@@ -1412,19 +1474,6 @@ END.
 &ANALYZE-RESUME
 
 
-&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL t-filen C-Win
-ON MOUSE-SELECT-DBLCLICK OF t-filen IN FRAME F-Main
-DO:
-/*   SELF:HIDDEN = TRUE.        */
-/*   i-filen-lw:HIDDEN = FALSE. */
-/*   i-filen-pf:HIDDEN = FALSE. */
-/*   RUN get-dirname.           */
-END.
-
-/* _UIB-CODE-BLOCK-END */
-&ANALYZE-RESUME
-
-
 &Scoped-define SELF-NAME w-filen
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL w-filen C-Win
 ON MOUSE-SELECT-CLICK OF w-filen IN FRAME F-Main
@@ -1455,6 +1504,7 @@ ASSIGN CURRENT-WINDOW                = {&WINDOW-NAME}
        
 DEFINE VARIABLE hf-w AS INTEGER     NO-UNDO.
 DEFINE VARIABLE hf-h AS INTEGER     NO-UNDO.
+
 RUN get-screen-size.
 IF hf-w > {&WINDOW-NAME}:WIDTH-PIXELS AND hf-h > {&WINDOW-NAME}:HEIGHT-PIXELS THEN   
    ASSIGN   
@@ -1558,15 +1608,15 @@ PROCEDURE enable_UI :
                These statements here are based on the "Other 
                Settings" section of the widget Property Sheets.
 ------------------------------------------------------------------------------*/
-  DISPLAY i-filen-lw i-filen-pf l-folder i-folder i-filter l-filen f-p f-csv 
-          f-file-or-fold f-w f-txt i-text f-r f-all f-text r-export i-export 
-          l-finded t-info l-label-0 l-error-1 l-label-1 l-label-2 l-error-2 
-          l-label-3 l-label-4 f-error-1 l-label-5 l-label-6 l-label-7 t-finded 
+  DISPLAY l-folder i-folder i-filter l-filen f-p f-csv f-file-or-fold f-w f-txt 
+          i-text f-r f-all f-text r-export i-export l-finded t-logo t-info 
+          l-error-1 l-label-1 l-label-2 l-error-2 l-label-3 l-label-4 f-error-1 
+          l-label-5 l-label-6 l-label-7 t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
-  ENABLE progress-bar-1 i-filen-lw i-filen-pf l-folder btn-search-new btn-back 
+  ENABLE progress-bar-1 img-logo btn-start l-folder btn-search-new btn-back 
          i-folder i-filter l-filen f-p f-csv f-file-or-fold f-w f-txt i-text 
          f-r f-all f-text r-export i-export btn-confirm e-filen-lw e-filen-pf 
-         e-filen btn-search-text l-finded t-info l-label-0 t-filen l-error-1 
+         e-filen btn-search-text l-finded t-logo t-info t-filen l-error-1 
          l-label-1 l-label-2 l-error-2 l-label-3 l-label-4 f-error-1 l-label-5 
          l-label-6 l-label-7 w-filen t-finded 
       WITH FRAME F-Main IN WINDOW C-Win.
@@ -2006,7 +2056,7 @@ DO WITH FRAME {&FRAME-NAME}:
    IF hf-ext-g <> "p" AND  hf-ext-g <> "w" AND  hf-ext-g <> "r" THEN
      COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "utf-8" NO-ERROR.
    ELSE
-     COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "iso8859-1" NO-ERROR.
+     COPY-LOB FILE (hf-file-path-g) TO hf-text NO-ERROR.
    
    EMPTY TEMP-TABLE tt-file-line NO-ERROR. // reset the table if we have 
    ASSIGN 
@@ -2016,7 +2066,7 @@ DO WITH FRAME {&FRAME-NAME}:
       ASSIGN hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
       IF hf-char <> CHR(13) AND hf-char <> CHR(10) THEN
          ASSIGN hf-temp-txt = hf-temp-txt + hf-char.
-      ELSE DO: 
+      ELSE DO:       
         // MESSAGE "text :" hf-temp-txt VIEW-AS ALERT-BOX. 
          CREATE tt-file-line.
          ASSIGN   
@@ -2028,7 +2078,7 @@ DO WITH FRAME {&FRAME-NAME}:
          ELSE IF LENGTH(hf-temp-txt) <= 200 AND LENGTH(hf-temp-txt) > 1 THEN
             ASSIGN tt-file-line.txt = hf-temp-txt.    
          ELSE
-            ASSIGN tt-file-line.txt = " ".
+            ASSIGN tt-file-line.txt = " ".               
          ASSIGN hf-temp-txt = "".  
       END.
    END.
@@ -2138,7 +2188,6 @@ DO WITH FRAME {&FRAME-NAME}:
      COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "utf-8" NO-ERROR.
    ELSE
      COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "iso8859-1" NO-ERROR.
-   ASSIGN hf-file-path-g = replace( replace( hf-file-path-g, '~n', '' ), '~r', '' ).
    DO hf-i = 1 TO LENGTH(hf-text):
       ASSIGN 
          hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
@@ -2339,7 +2388,11 @@ PROCEDURE p-to-html :
    
    ASSIGN
       hf-linie = "".
-
+   
+/*    IF hf-ext-g <> "p" AND  hf-ext-g <> "w" AND  hf-ext-g <> "r" THEN                     */
+/*      COPY-LOB FILE (hf-file-path-g) TO hf-text CONVERT SOURCE CODEPAGE "utf-8" NO-ERROR. */
+/*    ELSE                                                                                  */
+   
    OUTPUT TO VALUE(hf-export-path-g) CONVERT SOURCE "ISO8859-1" TARGET "UTF-8". 
    
    ASSIGN  hf-i  = 0.
@@ -2465,12 +2518,6 @@ PROCEDURE p-to-html :
   ~} ~n
 ~}~n".
    
-/*    PUT UNFORMATTED "<html>~n".                 */
-/*    PUT UNFORMATTED "<head>~n".                 */
-/*    PUT UNFORMATTED "<title>Tableau</title>~n". */
-/*    PUT UNFORMATTED "</head>~n".                */
-/*    PUT UNFORMATTED "<body>~n".                 */
-   
    PUT UNFORMATTED p-head.
    PUT UNFORMATTED "<input type=~"text~" id=~"searchInput~" placeholder=~"Search~">
 <button type=~"button~" onclick=~"searchTable()~">OK</button>".
@@ -2557,7 +2604,7 @@ PROCEDURE p-to-html :
 END PROCEDURE.
 /* DO WITH FRAME {&FRAME-NAME}: */
 /*                              */
-/* END.                         */
+/* END.     /*  offline B±rot±ren f±r Batteriestatus ±berlesen daher Pnr = 0 */                    */
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
@@ -2790,6 +2837,36 @@ DO WITH FRAME {&FRAME-NAME}:
       t-finded:SCREEN-VALUE = "".     
    RETURN FALSE.
 END.  
+
+END FUNCTION.
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION logo-hidden C-Win 
+FUNCTION logo-hidden RETURNS WIDGET-HANDLE
+  ( ) :
+/*------------------------------------------------------------------------------
+  Purpose:  
+    Notes:  
+------------------------------------------------------------------------------*/
+DO WITH FRAME {&FRAME-NAME}:          
+      ENABLE l-label-0 WITH FRAME F-Main.  
+      l-label-0:SENSITIVE  IN FRAME F-Main = TRUE. 
+      ENABLE i-filen-lw WITH FRAME F-Main.  
+      i-filen-lw:SENSITIVE  IN FRAME F-Main = TRUE. 
+      ENABLE i-filen-pf WITH FRAME F-Main.  
+      i-filen-pf:SENSITIVE  IN FRAME F-Main = TRUE.   
+   ASSIGN
+      btn-start:HIDDEN = TRUE
+      t-logo:HIDDEN = TRUE
+      img-logo:HIDDEN = TRUE
+      l-label-0:HIDDEN = FALSE
+      l-label-0:SCREEN-VALUE = "Folder path:"
+      i-filen-lw:HIDDEN = FALSE
+      i-filen-pf:HIDDEN = FALSE.
+END.      
+   RETURN ?.   /* Function return value. */
 
 END FUNCTION.
 
