@@ -98,7 +98,7 @@ t-finded
 /* ************************  Function Prototypes ********************** */
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-chang-ext C-Win 
-FUNCTION f-chang-ext RETURNS CHARACTER  // Definiert den R…kgabetyp der Funktion (Zeichenkette)
+FUNCTION f-chang-ext RETURNS CHARACTER // Definiert den R…kgabetyp der Funktion (Zeichenkette)
 
 (INPUT hf-name AS CHAR, INPUT hf-ext AS CHAR)  FORWARD.
 
@@ -106,7 +106,7 @@ FUNCTION f-chang-ext RETURNS CHARACTER  // Definiert den R…kgabetyp der Funktio
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-check-filter C-Win 
-FUNCTION f-check-filter RETURNS LOGICAL  // Definiert den R…kgabetyp der Funktion (logisch)
+FUNCTION f-check-filter RETURNS LOGICAL // Definiert den R…kgabetyp der Funktion (logisch)
 
 ( /* parameter-definitions */ )  FORWARD.
 
@@ -114,14 +114,14 @@ FUNCTION f-check-filter RETURNS LOGICAL  // Definiert den R…kgabetyp der Funkti
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-check-path C-Win 
-FUNCTION f-check-path RETURNS LOGICAL  // Definiert den R…kgabetyp der Funktion (logisch)
+FUNCTION f-check-path RETURNS LOGICAL // Definiert den R…kgabetyp der Funktion (logisch)
 ( /* parameter-definitions */ )  FORWARD.
 
 /* _UIB-CODE-BLOCK-END */
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-get-ext C-Win 
-FUNCTION f-get-ext RETURNS CHARACTER  // Definiert den R…kgabetyp der Funktion (Zeichenkette)
+FUNCTION f-get-ext RETURNS CHARACTER // Definiert den R…kgabetyp der Funktion (Zeichenkette)
 
 (INPUT hf-name AS CHAR)  FORWARD.
 
@@ -129,7 +129,7 @@ FUNCTION f-get-ext RETURNS CHARACTER  // Definiert den R…kgabetyp der Funktion 
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION-FORWARD f-in-array C-Win 
-FUNCTION f-in-array RETURNS LOGICAL  // Definiert den R…kgabetyp der Funktion (logischer Wert)
+FUNCTION f-in-array RETURNS LOGICAL // Definiert den R…kgabetyp der Funktion (logischer Wert)
 
 (INPUT hf-word AS CHAR, INPUT lists AS CHAR EXTENT)  FORWARD.
 
@@ -2497,7 +2497,7 @@ PROCEDURE p-to-html :
       END.
       PUT UNFORMATTED "<td><xmp>" hf-wort "</xmp></td>~n".
       PUT UNFORMATTED "<td>" tt-gefunden.linie-num "</td>~n".
-      PUT UNFORMATTED "<td><xmp>" tt-gefunden.linie "</xmp></td>~n".
+      PUT UNFORMATTED "<td><xmp>" TRIM(tt-gefunden.linie) "</xmp></td>~n".
       PUT UNFORMATTED "</tr>~n".
       ASSIGN hf-old = tt-gefunden.datei-path.
    END.
@@ -2524,7 +2524,7 @@ PROCEDURE p-to-html :
        PUT UNFORMATTED "~"name~" : ~"" tt-gefunden.datei-name "~",~n".
        PUT UNFORMATTED "~"wort~" : ~""  hf-wort "~",~n".
        PUT UNFORMATTED "~"l-num~" : " tt-gefunden.linie-num ",~n".
-       PUT UNFORMATTED "~"linie~" : ~"" hf-linie "~"~n".
+       PUT UNFORMATTED "~"linie~" : ~"" TRIM(hf-linie) "~"~n".
        PUT UNFORMATTED "~},~n".
    END.    
    PUT UNFORMATTED "];~n".
@@ -2590,7 +2590,7 @@ END PROCEDURE.
 /* ************************  Function Implementations ***************** */
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-chang-ext C-Win 
-FUNCTION f-chang-ext RETURNS CHARACTER  // Definiert den R…kgabetyp der Funktion (Zeichenkette)
+FUNCTION f-chang-ext RETURNS CHARACTER // Definiert den R…kgabetyp der Funktion (Zeichenkette)
 
 (INPUT hf-name AS CHAR, INPUT hf-ext AS CHAR) :  // Definiert zwei Eingabeparameter: "hf-name" vom Typ Zeichenkette und "hf-ext" vom Typ Zeichenkette
 
@@ -2617,7 +2617,7 @@ END FUNCTION.  // Beendet die Funktion
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-check-filter C-Win 
-FUNCTION f-check-filter RETURNS LOGICAL  // Definiert den R…kgabetyp der Funktion (logisch)
+FUNCTION f-check-filter RETURNS LOGICAL // Definiert den R…kgabetyp der Funktion (logisch)
 
 ( /* parameter-definitions */ ) :  // Definiert keine Eingabeparameter
 
@@ -2649,7 +2649,7 @@ END FUNCTION.  // Beendet die Funktion
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-check-path C-Win 
-FUNCTION f-check-path RETURNS LOGICAL  // Definiert den R…kgabetyp der Funktion (logisch)
+FUNCTION f-check-path RETURNS LOGICAL // Definiert den R…kgabetyp der Funktion (logisch)
 ( /* parameter-definitions */ ) :  // Definiert keine Eingabeparameter
 /*------------------------------------------------------------------------------
   Purpose:  
@@ -2671,7 +2671,7 @@ END FUNCTION.  // Beendet die Funktion
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-get-ext C-Win 
-FUNCTION f-get-ext RETURNS CHARACTER  // Definiert den R…kgabetyp der Funktion (Zeichenkette)
+FUNCTION f-get-ext RETURNS CHARACTER // Definiert den R…kgabetyp der Funktion (Zeichenkette)
 
 (INPUT hf-name AS CHAR) : // Definiert parameter: "hf-name" vom Typ Zeichenkette
 
@@ -2698,7 +2698,7 @@ END FUNCTION.  // Beendet die Funktion
 &ANALYZE-RESUME
 
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _FUNCTION f-in-array C-Win 
-FUNCTION f-in-array RETURNS LOGICAL  // Definiert den R…kgabetyp der Funktion (logischer Wert)
+FUNCTION f-in-array RETURNS LOGICAL // Definiert den R…kgabetyp der Funktion (logischer Wert)
 
 (INPUT hf-word AS CHAR, INPUT lists AS CHAR EXTENT) :  // Definiert zwei Eingabeparameter: "hf-word" vom Typ Zeichenkette und "lists" vom Typ Zeichenkette-Array
 
