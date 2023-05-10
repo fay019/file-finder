@@ -388,7 +388,8 @@ DEFINE FRAME F-Main
      i-filen-pf AT ROW 2.62 COL 16 COLON-ALIGNED NO-LABEL WIDGET-ID 4
      l-folder AT ROW 4.19 COL 13.57 NO-LABEL WIDGET-ID 12
      btn-search-new AT ROW 4.19 COL 42 WIDGET-ID 38
-     btn-back AT ROW 4.19 COL 52 WIDGET-ID 40
+     btn-back AT ROW 4.19 COL 52 HELP
+          "HALLOO btn bfb" WIDGET-ID 40
      i-folder AT ROW 4.23 COL 66 WIDGET-ID 32
      i-filter AT ROW 5.35 COL 66 WIDGET-ID 16
      l-filen AT ROW 5.65 COL 13.57 NO-LABEL WIDGET-ID 18
@@ -692,21 +693,18 @@ DO:
       hf-new-path = SUBSTRING(t-filen:SCREEN-VALUE, 1, lastbackslash - 1).   
    IF LENGTH(hf-new-path) < 3 THEN DO:
       ASSIGN
-         SELF:HIDDEN = TRUE 
-         hf-new-path = hf-new-path + "~\".   
+         SELF:HIDDEN = TRUE
+         hf-new-path = i-filen-lw:SCREEN-VALUE + ":~\".
    END.
-   IF firstdpplpkt <> 0 THEN 
-      ASSIGN 
-         i-filen-lw:SCREEN-VALUE = SUBSTRING(hf-new-path, 1, firstdpplpkt - 1).
-   ELSE   
-      ASSIGN
-         i-filen-lw:SCREEN-VALUE = "".
+/*    IF firstdpplpkt <> 0 THEN                                                    */
+/*       ASSIGN                                                                    */
+/*          i-filen-lw:SCREEN-VALUE = SUBSTRING(hf-new-path, 1, firstdpplpkt - 1). */
+/*    ELSE                                                                         */
+/*       ASSIGN                                                                    */
+/*          i-filen-lw:SCREEN-VALUE = "".                                          */
    IF lastbackslash <> 0 THEN
       ASSIGN
          i-filen-pf:SCREEN-VALUE = SUBSTRING(hf-new-path, firstdpplpkt + 1).
-   //ELSE
-      //ASSIGN
-         //i-filen-pf:SCREEN-VALUE = "~\".
    ASSIGN                 
       t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" + i-filen-pf:SCREEN-VALUE.
    ASSIGN 
@@ -763,6 +761,15 @@ DO:
          btn-search:HIDDEN = TRUE.
       RUN get-filelist.      
    END.
+   ELSE IF i-filen-pf:SCREEN-VALUE = "" AND t-filen:SCREEN-VALUE <> "" THEN DO:
+      ASSIGN 
+         i-filen-pf:SCREEN-VALUE = "~\"
+         i-filen-lw:HIDDEN = TRUE
+         i-filen-pf:HIDDEN = TRUE
+         t-filen:HIDDEN    = FALSE
+         btn-search:HIDDEN = TRUE.
+      RUN get-filelist. 
+   END.     
    ELSE DO:
       ASSIGN
          t-info:HIDDEN = FALSE
@@ -783,13 +790,12 @@ DO:
          ASSIGN 
             hf-new-path = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + l-folder:SCREEN-VALUE
             t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + l-folder:SCREEN-VALUE
-         i-filen-pf:SCREEN-VALUE = i-filen-pf:SCREEN-VALUE + l-folder:SCREEN-VALUE.
+            i-filen-pf:SCREEN-VALUE = i-filen-pf:SCREEN-VALUE + l-folder:SCREEN-VALUE.
       ELSE
          ASSIGN           
             hf-new-path = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
             t-filen:SCREEN-VALUE = i-filen-lw:SCREEN-VALUE + ":" +  i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE
-         i-filen-pf:SCREEN-VALUE = i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE.
-         
+            i-filen-pf:SCREEN-VALUE = i-filen-pf:SCREEN-VALUE + "~\" + l-folder:SCREEN-VALUE.         
       ASSIGN 
          i-filen-lw:HIDDEN = TRUE.
          i-filen-pf:HIDDEN = TRUE.
@@ -1165,7 +1171,7 @@ ON VALUE-CHANGED OF i-folder IN FRAME F-Main /* Ordner */
 DO:
    IF SELF:SCREEN-VALUE = "NO" THEN DO:
       ASSIGN
-         btn-search-new:HIDDEN = YES
+         btn-search-new:HIDDEN = NO
          l-filen:ROW = 4.19.
          l-label-1:SCREEN-VALUE = "List of File:".
       IF l-filen:LIST-ITEMS <> ? THEN
@@ -1396,10 +1402,10 @@ END.
 &ANALYZE-SUSPEND _UIB-CODE-BLOCK _CONTROL t-filen C-Win
 ON MOUSE-SELECT-CLICK OF t-filen IN FRAME F-Main
 DO:
-  SELF:HIDDEN = TRUE.
-  ASSIGN 
-     i-filen-lw:HIDDEN = FALSE
-     i-filen-pf:HIDDEN = FALSE.
+   SELF:HIDDEN = TRUE.
+   ASSIGN 
+      i-filen-lw:HIDDEN = FALSE
+      i-filen-pf:HIDDEN = FALSE.  
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -1513,6 +1519,7 @@ DO ON ERROR   UNDO MAIN-BLOCK, LEAVE MAIN-BLOCK
      
 /*       IF NOT THIS-PROCEDURE:PERSISTENT THEN */
 /*          WAIT-FOR CLOSE OF THIS-PROCEDURE.  */
+   
 END.
 
 /* _UIB-CODE-BLOCK-END */
@@ -2007,7 +2014,7 @@ DO WITH FRAME {&FRAME-NAME}:
       hf-temp-txt = "".
    DO hf-i = 1 TO LENGTH(hf-text):
       ASSIGN hf-char = SUBSTRING(hf-text, hf-i, 1). // get char after char
-      IF hf-char <> CHR(13)  THEN
+      IF hf-char <> CHR(13) AND hf-char <> CHR(10) THEN
          ASSIGN hf-temp-txt = hf-temp-txt + hf-char.
       ELSE DO: 
         // MESSAGE "text :" hf-temp-txt VIEW-AS ALERT-BOX. 
@@ -2142,16 +2149,16 @@ DO WITH FRAME {&FRAME-NAME}:
 /*          "hf-word: " hf-word SKIP                                                    */
 /*          "hf-line: " hf-line SKIP                                                    */
 /*          VIEW-AS ALERT-BOX TITLE "1".                                                */
-      IF hf-start = NO AND ( hf-char <> " " OR  hf-char = "~n" ) THEN DO:  // first char of word
+      IF hf-start = NO AND ( hf-char <> " " OR  hf-char = "~n" OR  hf-char = "~r" ) THEN DO:  // first char of word
          ASSIGN
             hf-word = hf-char
             hf-start = YES.
       END.
-      ELSE IF hf-start = YES AND ( hf-char <> " " OR  hf-char = "~n" ) THEN DO:  // next char in word
+      ELSE IF hf-start = YES AND ( hf-char <> " " OR  hf-char = "~n" OR  hf-char = "~r" ) THEN DO:  // next char in word
          ASSIGN
             hf-word = hf-word + hf-char.
       END.
-      ELSE IF hf-start = YES AND ( hf-char = " " OR  hf-char = "~n" )  THEN DO:   // hier I have my word
+      ELSE IF hf-start = YES AND ( hf-char = " " OR  hf-char = "~n" OR  hf-char = "~r" )  THEN DO:   // hier I have my word
          ASSIGN
             hf-start = NO.
       END.
