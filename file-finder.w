@@ -212,7 +212,7 @@ DEFINE BUTTON btn-start
 DEFINE VARIABLE i-filen-lw AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 5
      DROP-DOWN-LIST
-     SIZE 5 BY .92 NO-UNDO.
+     SIZE 5 BY 1 NO-UNDO.
 
 DEFINE VARIABLE l-filen AS CHARACTER FORMAT "X(256)":U 
      VIEW-AS COMBO-BOX INNER-LINES 10
@@ -1220,7 +1220,7 @@ ON VALUE-CHANGED OF i-folder IN FRAME F-Main /* Ordner */
 DO:
    IF SELF:SCREEN-VALUE = "NO" THEN DO:
       ASSIGN
-         btn-search-new:HIDDEN = NO
+         btn-search-new:HIDDEN = YES
          l-filen:ROW = 4.19.
          l-label-1:SCREEN-VALUE = "List of File:".
       IF l-filen:LIST-ITEMS <> ? THEN
@@ -1230,11 +1230,13 @@ DO:
    ELSE DO:
       ASSIGN
          l-filen:ROW = 5.69. 
-      IF l-filen:LIST-ITEMS <> ? THEN
+      //IF l-filen:LIST-ITEMS <> ? THEN
          ASSIGN
-            btn-search-new:HIDDEN = YES 
             l-label-1:SCREEN-VALUE = "List of Folder:" 
-            l-label-2:HIDDEN = NO.      
+            l-label-2:HIDDEN = NO. 
+         IF l-folder:SCREEN-VALUE <> "" AND l-folder:SCREEN-VALUE <> "List of File:" THEN 
+            ASSIGN               
+            btn-search-new:HIDDEN = YES .
    END.
    IF l-filen:LIST-ITEMS <> "" AND l-filen:LIST-ITEMS <> ? THEN
       RUN get-filelist.
@@ -1667,8 +1669,10 @@ DO WITH FRAME {&FRAME-NAME}:
          t-filen:HIDDEN    = FALSE
          btn-search:HIDDEN = TRUE.
    END. 
-   IF t-filen:SCREEN-VALUE <> ? THEN
+   IF t-filen:SCREEN-VALUE <> ? THEN DO:  
       RUN get-filelist.
+   END.
+      
 END.
 END PROCEDURE.
 
@@ -1720,7 +1724,7 @@ DO WITH FRAME {&FRAME-NAME}:
    DEF VAR hf-first-folder AS LOG NO-UNDO INIT NO. 
    DEF VAR cDir            AS CHAR NO-UNDO.
    DEF VAR cFileStream     AS CHAR NO-UNDO.
-   DEF VAR hf-type         AS CHAR NO-UNDO.
+   DEF VAR hf-type         AS CHAR NO-UNDO.  // 
    DEF VAR hf-path         AS CHAR NO-UNDO.
    DEF VAR hf-ext          AS CHAR NO-UNDO.
    DEF VAR lastpkt         AS INT  NO-UNDO.
@@ -1741,10 +1745,10 @@ DO WITH FRAME {&FRAME-NAME}:
          
          ASSIGN 
             hf-path = cDir + "~\" + cFileStream. // add "\" between path and file name      
-         FILE-INFO:FILE-NAME = hf-path.
+         FILE-INFO:FILE-NAME = hf-path. 
          
          ASSIGN 
-            hf-type = SUBSTRING(FILE-INFO:FILE-TYPE, 1,1 ). 
+            hf-type = SUBSTRING(FILE-INFO:FILE-TYPE, 1,1 ). // return D => direcory or F => file  
             
          IF cFileStream <> "." AND cFileStream <> ".." THEN DO:
             IF hf-type = "F" THEN DO:
@@ -1816,14 +1820,15 @@ DO WITH FRAME {&FRAME-NAME}:
          i-text:HIDDEN = FALSE
          f-text:HIDDEN = FALSE
          l-finded:HIDDEN = FALSE.     
-      ASSIGN   
-         {&WINDOW-NAME}:HEIGHT-PIXELS = 580.
    END.
    ELSE DO:
       ASSIGN 
          t-info:HIDDEN = FALSE
          t-info:SCREEN-VALUE = "Select folder first".  
-   END.    
+   END.       
+   IF {&WINDOW-NAME}:HEIGHT-PIXELS < 580 THEN
+      ASSIGN   
+         {&WINDOW-NAME}:HEIGHT-PIXELS = 580.    
 END.
 END PROCEDURE.
 
